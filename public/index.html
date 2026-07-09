@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SETU — Hub-and-Spoke IVF Network (Prototype)</title>
+<style>
+
+  :root{ --teal:#16807c; --deep:#0f5f5c; --ink:#1d2b31; --soft:#6a868d; --bg:#eef3f3; --card:#fff; --border:#e2eaea; --line:#eef2f2; --pale:#e7f1f0; --danger:#b23b2e; --amber:#9a6b14; --amberbg:#fbf2e0; --green:#2f8f5b; --greenbg:#e6f4ec; --nav-h:64px; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{overflow-x:hidden;}
+  body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;}
+  .num{font-variant-numeric:tabular-nums;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  img{max-width:100%;}
+  .topbar{position:sticky;top:0;z-index:60;height:56px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#2f7e84,#1c5f63);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none;}
+  .brand b{font-size:16px;font-weight:800;display:block;line-height:1.05;}
+  .brand .brandsub{font-size:10px;color:var(--soft);}
+  .tourtop{margin-left:auto;background:var(--teal);color:#fff;font-weight:700;font-size:13px;padding:9px 14px;border-radius:10px;flex:none;min-height:40px;}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:55;background:#fff;border-top:1px solid var(--border);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 12px rgba(20,40,45,.06);}
+  .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 4px;color:var(--soft);min-height:60px;}
+  .tabbar button .ti{font-size:20px;line-height:1;}
+  .tabbar button .tl{font-size:10.5px;font-weight:600;}
+  .tabbar button.on{color:var(--teal);}
+  .wrap{max-width:100%;padding:16px 16px calc(var(--nav-h) + 24px);margin:0 auto;}
+  .eyebrow{font-size:10.5px;letter-spacing:1.3px;color:var(--teal);font-weight:700;text-transform:uppercase;}
+  h1.page{font-size:22px;font-weight:800;margin:3px 0 2px;}
+  .sub{color:var(--soft);font-size:13.5px;margin-bottom:16px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:15px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .divider{height:1px;background:var(--border);margin:13px 0;}
+  .muted{color:var(--soft);font-size:12.5px;}
+  .grid2,.grid3{display:grid;grid-template-columns:1fr;gap:12px;}
+  .btn{background:var(--teal);color:#fff;font-weight:700;padding:12px 18px;border-radius:10px;font-size:14.5px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+  .btn.ghost{background:#fff;color:var(--soft);border:1px solid var(--border);}
+  .btn.deep{background:var(--deep);}
+  .btn:disabled{opacity:.5;}
+  input,select,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:15px;margin-top:5px;background:#fff;font-family:inherit;}
+  label{font-size:12.5px;color:var(--soft);font-weight:600;}
+  .field{margin-bottom:14px;}
+  .demo-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--amber);background:var(--amberbg);padding:3px 8px;border-radius:10px;letter-spacing:.4px;}
+  .chip{display:inline-block;font-size:11.5px;padding:4px 10px;border-radius:12px;background:var(--pale);color:var(--deep);font-weight:600;margin:3px 4px 3px 0;}
+  .chip.red{background:#f7eae8;color:var(--danger);} .chip.green{background:var(--greenbg);color:var(--green);} .chip.amber{background:var(--amberbg);color:var(--amber);}
+  .searchbox{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+  .searchbox input{margin-top:0;} .searchbox .btn{width:100%;}
+  .presult{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .presult .btn{width:100%;margin-top:6px;}
+  .avatar{width:42px;height:42px;border-radius:50%;background:var(--pale);color:var(--deep);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;}
+  .upzone{border:2px dashed #cdd9d9;border-radius:14px;padding:28px 16px;text-align:center;color:var(--soft);background:#fbfdfd;}
+  .filechip{display:inline-flex;align-items:center;gap:6px;font-size:12px;background:#f4f8f8;border:1px solid var(--border);border-radius:9px;padding:8px 11px;margin:4px 4px 0 0;}
+  .scan{height:7px;border-radius:4px;background:linear-gradient(90deg,var(--teal),#5fd0c9);width:0;transition:width .1s;}
+  .console{display:grid;grid-template-columns:1fr;gap:12px;}
+  .rail .card{margin-bottom:12px;}
+  .ch{font-size:10.5px;color:var(--soft);letter-spacing:.5px;margin-bottom:9px;text-transform:uppercase;font-weight:700;}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
+  .kv:last-child{border:none;} .kv .k{color:var(--soft);} .kv .v{font-weight:600;text-align:right;}
+  .kv .v.flag{color:var(--amber);} .kv .v.ok{color:var(--green);}
+  .pstrip{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+  .pname{font-size:17px;font-weight:700;} .pmeta{color:var(--soft);font-size:12.5px;width:100%;}
+  .ph{font-size:11px;color:var(--soft);letter-spacing:.4px;margin-bottom:9px;text-transform:uppercase;font-weight:700;}
+  .paramgrid{display:flex;flex-wrap:wrap;}
+  .pcell{width:50%;padding:8px 12px 8px 0;}
+  .pcell .lab{font-size:11.5px;color:var(--soft);} .pcell .val{font-size:17px;font-weight:700;}
+  .pcell .val u{font-size:11px;font-weight:500;color:var(--soft);text-decoration:none;margin-left:2px;}
+  .pcell .ref{font-size:10.5px;color:#9fb2b5;margin-left:4px;}
+  .pcell.flag .val{color:var(--amber);}
+  .three{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px;}
+  .ic{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 15px;}
+  .ic.diag{border-left:4px solid var(--teal);} .ic.tx{border-left:4px solid var(--deep);}
+  .icn{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+  .icn .n{width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
+  .icn h3{font-size:13.5px;} .ic p,.ic li{font-size:13px;line-height:1.5;color:#34474d;margin-bottom:6px;}
+  .ic ul{list-style:none;} .ic li{padding-left:16px;position:relative;} .ic li b{color:var(--ink);}
+  .ic li .s{position:absolute;left:0;color:var(--teal);font-weight:700;}
+  .foot{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px 16px;margin-top:12px;}
+  .foot .ring{flex:none;}
+  .foot > div:nth-child(2){flex:1;min-width:140px;}
+  .foot > div:last-child{width:100%;display:flex;gap:10px;}
+  .foot > div:last-child .btn{flex:1;}
+  .ring{width:30px;height:30px;border-radius:50%;border:2.5px solid var(--green);}
+  .voice{background:#0f3b3e;border-radius:14px;padding:16px;color:#dff0ef;margin-bottom:12px;}
+  .voice h3{color:#fff;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .pipeline{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+  .stage{background:#123f42;border-radius:10px;padding:10px 11px;font-size:11px;opacity:.4;transition:.3s;border:1px solid #1c5153;}
+  .stage.active{opacity:1;background:#16807c;border-color:#5fd0c9;} .stage.done{opacity:1;background:#123f42;border-color:#2f8f5b;}
+  .stage b{color:#fff;display:block;font-size:12px;margin-bottom:2px;}
+  .wave{display:inline-flex;gap:3px;align-items:flex-end;height:16px;}
+  .wave span{width:3px;background:#5fd0c9;border-radius:2px;animation:w 1s infinite;}
+  @keyframes w{0%,100%{height:4px}50%{height:16px}}
+  .transcript{background:#0b2e30;border-radius:10px;padding:12px;margin-top:8px;max-height:260px;overflow:auto;}
+  .tline{margin-bottom:10px;font-size:13px;}
+  .tline .who{font-weight:700;font-size:10px;letter-spacing:.5px;text-transform:uppercase;}
+  .tline .who.doc{color:#7fd6cf;} .tline .who.pat{color:#f0c66b;}
+  .tline .orig{color:#8fb4b3;} .tline .eng{color:#eafffe;}
+  .recbtn{background:#c0392b;color:#fff;font-weight:700;padding:12px 18px;border-radius:10px;font-size:14px;display:inline-flex;align-items:center;gap:8px;width:100%;justify-content:center;min-height:48px;}
+  .recbtn.rec{background:#123f42;border:1px solid #5fd0c9;}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .stat .lab{font-size:12px;color:var(--soft);} .stat .big{font-size:26px;font-weight:800;margin:4px 0;}
+  .stat .tr{font-size:12px;color:var(--green);font-weight:600;}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px;}
+  th{text-align:left;color:var(--soft);font-weight:700;font-size:11px;text-transform:uppercase;padding:10px;border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  tr.clk:active{background:#f7fbfb;}
+  .status{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:10px;white-space:nowrap;}
+  .status.pend{background:var(--amberbg);color:var(--amber);} .status.appr{background:var(--greenbg);color:var(--green);} .status.act{background:#f7eae8;color:var(--danger);}
+  .steps{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;}
+  .stepn{flex:1;min-width:130px;text-align:center;padding:11px 10px;border-radius:10px;background:#fff;border:1px solid var(--border);font-size:12.5px;color:var(--soft);white-space:nowrap;}
+  .stepn.on{background:var(--deep);color:#fff;font-weight:700;}
+  .modal-bg{position:fixed;inset:0;background:rgba(20,40,45,.5);display:flex;align-items:flex-end;justify-content:center;z-index:200;}
+  .modal{background:#fff;border-radius:18px 18px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));width:100%;max-height:92vh;overflow:auto;}
+  .sim{position:fixed;right:12px;bottom:calc(var(--nav-h) + 12px);z-index:58;background:#0f3b3e;color:#dff0ef;border-radius:14px;padding:12px 14px;width:232px;box-shadow:0 10px 30px rgba(0,0,0,.28);font-size:12px;}
+  .sim h4{color:#fff;font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:8px;cursor:pointer;}
+  .sim .row{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;margin:8px 0;gap:8px;}
+  .toggle{background:#123f42;border:1px solid #2c6d6f;color:#dff0ef;font-size:11px;padding:7px 11px;border-radius:8px;min-height:34px;}
+  .toggle.on{background:#16807c;border-color:#5fd0c9;color:#fff;}
+  .sim .collapsed{display:none;}
+  .tour-ov{position:fixed;inset:0;background:rgba(15,30,34,.55);z-index:300;}
+  .tour-card{position:fixed;z-index:302;background:#fff;border-radius:16px;padding:18px;box-shadow:0 14px 40px rgba(0,0,0,.32);left:12px;right:12px;bottom:calc(var(--nav-h) + 12px);}
+  .tour-card .tc-step{font-size:11px;color:var(--teal);font-weight:700;letter-spacing:1px;}
+  .tour-card h4{font-size:17px;margin:5px 0 8px;}
+  .tour-card p{font-size:14px;color:#425a60;line-height:1.5;margin-bottom:14px;}
+  .tour-card .tc-btns{display:flex;gap:8px;align-items:center;}
+  .tour-card .tc-btns .btn{padding:10px 14px;font-size:13px;min-height:42px;}
+  .spot{position:relative;z-index:301;box-shadow:0 0 0 4px #5fd0c9,0 0 0 9999px rgba(15,30,34,.55);border-radius:12px;}
+  @media(min-width:900px){
+    body{font-size:14px;}
+    .topbar{height:60px;padding:0 22px;}
+    .tabbar{position:sticky;top:60px;bottom:auto;left:auto;right:auto;z-index:40;border-top:none;border-bottom:1px solid var(--border);padding:0 18px;box-shadow:none;justify-content:flex-start;gap:4px;}
+    .tabbar button{flex:0 0 auto;flex-direction:row;gap:7px;min-height:0;padding:13px 14px;position:relative;}
+    .tabbar button .ti{font-size:16px;} .tabbar button .tl{font-size:14px;font-weight:600;}
+    .tabbar button.on{color:var(--ink);}
+    .tabbar button.on::after{content:'';position:absolute;left:14px;right:14px;bottom:0;height:3px;background:var(--teal);border-radius:3px;}
+    .wrap{max-width:1180px;padding:22px 22px 44px;}
+    h1.page{font-size:26px;}
+    .grid2{grid-template-columns:1fr 1fr;gap:14px;}
+    .grid3{grid-template-columns:1fr 1fr 1fr;gap:12px;}
+    .console{grid-template-columns:300px 1fr;gap:14px;}
+    .three{grid-template-columns:1fr 1fr 1fr;}
+    .pcell{width:33.33%;}
+    .pipeline{grid-template-columns:1fr 1fr 1fr 1fr;}
+    .searchbox{flex-direction:row;} .searchbox .btn{width:auto;}
+    .presult .btn{width:auto;margin-top:0;}
+    .foot > div:last-child{width:auto;margin-left:auto;} .foot > div:last-child .btn{flex:0 0 auto;}
+    .recbtn{width:auto;}
+    table{min-width:0;}
+    .modal-bg{align-items:center;} .modal{border-radius:18px;width:560px;max-width:92vw;}
+    .sim{bottom:20px;right:20px;width:270px;}
+    .tour-card{width:340px;left:auto;right:auto;}
+    .stepn{flex:0 0 auto;min-width:0;}
+  }
+
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">SE</div>
+  <div class="brand"><b>SETU</b><span class="brandsub">Hub-and-Spoke IVF</span></div>
+  <button class="tourtop" onclick="startTour()">▶ Tour</button>
+</header>
+<nav class="tabbar" id="nav">
+  <button data-m="onboarding"><span class="ti">🏥</span><span class="tl">Clinics</span></button>
+  <button data-m="reception"><span class="ti">📋</span><span class="tl">Front Desk</span></button>
+  <button data-m="doctor" class="on"><span class="ti">🩺</span><span class="tl">Doctor</span></button>
+  <button data-m="hub"><span class="ti">🏨</span><span class="tl">Hub</span></button>
+</nav>
+<main id="app" class="wrap"></main>
+
+<!-- Simulation panel -->
+<div class="sim" id="sim">
+  <h4 onclick="toggleSim()" style="cursor:pointer">● SETU Developer Simulation Engine ▾</h4>
+  <div id="simbody">
+    <div class="row"><span>Staff layout</span>
+      <button class="toggle on" id="tgStaff" onclick="toggleStaff()">Team</button></div>
+    <div class="row"><span>Records completeness</span>
+      <button class="toggle on" id="tgRec" onclick="toggleRecords()">Complete</button></div>
+    <div class="row"><span>Hub — inject 50 referrals</span>
+      <button class="toggle" onclick="injectReferrals()">Inject</button></div>
+    <div class="row"><span>Reset demo</span>
+      <button class="toggle" onclick="location.reload()">Reset</button></div>
+  </div>
+</div>
+
+<script>
+/* ---------------- STATE + MOCK DATA ---------------- */
+const S = { module:'doctor', staff:'team', complete:true, patient:'p1', voiceRun:false, refsInjected:false,
+  lab:{amh:'missing',afc:'missing',hsg:'missing'}, sentForApproval:{}, hubTab:'dash',
+  hubQueue:[
+    {name:'Rekha M.',id:'PT-100463',clinic:'Sanjeevani · Palanpur',dx:'Low AMH → IVF (± donor egg)',status:'pending',pkey:'p4'},
+    {name:'Sunita D.',id:'PT-100471',clinic:'Matru · Godhra',dx:'Bilateral tubal block → IVF',status:'pending',pkey:'p5'},
+    {name:'Anjali T.',id:'PT-100449',clinic:'Shreeji · Nadiad',dx:'Male factor → IVF-ICSI',status:'onboarding',pkey:'p6',specNote:'Confirmed — proceed with IVF-ICSI.',onb:[true,true,false,false,false]},
+  ], reviewCase:null, onbCase:null };
+const MISSING=[
+  {key:'amh',name:'AMH — ovarian reserve',why:'blood test',lab:'PathCare Labs · 0.8 km',result:['AMH','2.1','ng/mL','ref 1–4',0]},
+  {key:'afc',name:'Antral Follicle Count — pelvic USG',why:'transvaginal scan',lab:'Nadiad Imaging · 1.2 km',result:['Antral Follicle Count','9','foll.','ref 8–24',0]},
+  {key:'hsg',name:'HSG — tubal patency',why:'imaging',lab:'Nadiad Imaging · 1.2 km',hsg:'Bilateral tubal patency confirmed'},
+];
+
+const PATIENTS = {
+  p1:{ id:'PT-100481', name:'Meena R.', age:31, partnerAge:34, bmi:'23.0 · normal', loc:'Nadiad, GJ · Tier 3',
+       married:'4 yrs', complaint:'Primary infertility, 3 yrs',
+       history:{ 'Infertility':'Primary · 3 yrs','Cycles':['Regular, 28–30d','ok'],'Coital freq':'2–3 / week',
+         'Obstetric':'G0 · no prior pregnancy','Prior treatment':['2× ovulation induction, failed','flag'],
+         'TB / PID history':['None reported','ok'],'PCOS / thyroid':['None','ok'],'Surgery':'No pelvic surgery' },
+       labs:[ ['AMH','2.4','ng/mL','ref 1–4',0],['FSH (Day 3)','6.1','mIU/mL','ref 3–10',0],['LH (Day 3)','5.2','mIU/mL','ref 2–12',0],
+              ['Antral Follicle Count','14','foll.','ref 8–24',0],['TSH','1.8','µIU/mL','ref 0.4–4',0],['Prolactin','12','ng/mL','ref 4–23',0],
+              ['Sperm Concentration','48','M/mL','ref ≥16',0],['Sperm Motility','55','%','ref ≥42',0],['Normal Morphology','6','%','LOW-NORMAL',1] ],
+       hsg:'Bilateral tubal patency confirmed', docs:['AMH_assay.pdf','HSG_report_scan.jpg','semen_analysis.pdf','intake_handwritten.jpg'] },
+  p2:{ id:'PT-100517', name:'Kavita S.', age:29, partnerAge:32, bmi:'27.6 · high', loc:'Anand, GJ · Tier 3',
+       married:'3 yrs', complaint:'Primary infertility, 2 yrs', incomplete:true,
+       history:{ 'Infertility':'Primary · 2 yrs','Cycles':['Irregular, 40–60d','flag'],'PCOS / thyroid':['PCOS suspected','flag'],
+         'TB / PID history':['None reported','ok'],'Prior treatment':'None' },
+       labs:[ ['AMH','—','ng/mL','not done',2],['Antral Follicle Count','—','','not done',2],['TSH','3.1','µIU/mL','ref 0.4–4',0],
+              ['Sperm Concentration','52','M/mL','ref ≥16',0],['Sperm Motility','48','%','ref ≥42',0] ],
+       hsg:'Not done', docs:['tsh_report.pdf','semen_analysis.pdf'] },
+  p3:{ id:'PT-100488', name:'Farida K.', age:34, partnerAge:38, bmi:'24 · normal', loc:'Bharuch, GJ · Tier 3',
+       married:'6 yrs', complaint:'Primary infertility, 5 yrs',
+       history:{ 'Infertility':'Primary · 5 yrs','Cycles':['Regular','ok'],'TB / PID history':['None','ok'],'Prior treatment':'None' },
+       labs:[ ['AMH','1.9','ng/mL','ref 1–4',0],['Antral Follicle Count','11','foll.','ref 8–24',0],['TSH','2.0','µIU/mL','ref 0.4–4',0],
+              ['Sperm Concentration','0','M/mL','AZOOSPERMIA',1],['Sperm Motility','0','%','—',1] ],
+       hsg:'Bilateral tubal patency confirmed', docs:['amh.pdf','semen_analysis.pdf','hsg.jpg'] },
+};
+
+Object.assign(PATIENTS.p1,{docNote:'Regular cycles, no TB, 2 failed OI elsewhere. Borderline morphology — favour IUI at hub.',aiDx:'Mild male factor (borderline morphology 6%); ovulatory, patent tubes, normal reserve — favourable prognosis.',aiPlan:['IUI at hub (mild male factor + 2 failed OI)','Consider IVF-ICSI if IUI fails','Baseline USG + estradiol, Day 2'],convFindings:['Primary infertility · 3 yrs','Regular cycles → ovulatory','No TB / no pelvic surgery','2× ovulation induction, failed']});
+Object.assign(PATIENTS.p2,{docNote:'Irregular cycles, PCOS, high BMI. Ordered AMH / AFC / HSG via partner labs.',aiDx:'Anovulation (PCOS); normal reserve, patent tubes, adequate semen.',aiPlan:['Spoke: ovulation induction (letrozole)','Correct weight / thyroid first','Cap 3–6 cycles → escalate to hub'],convFindings:['Irregular cycles, 40–60d','PCOS suspected']});
+Object.assign(PATIENTS.p3,{docNote:'Azoospermia on semen analysis — mandatory hub review.',aiDx:'Severe male factor — azoospermia (no sperm in ejaculate).',aiPlan:['IVF + ICSI (mandatory hub route)','Surgical sperm retrieval / donor as needed'],convFindings:['Primary infertility · 5 yrs','No TB / no pelvic surgery']});
+PATIENTS.p4={ id:'PT-100463', name:'Rekha M.', age:39, partnerAge:41, bmi:'22 · normal', loc:'Palanpur, GJ · Tier 2', married:'6 yrs', complaint:'Primary infertility, 5 yrs',
+  history:{'Infertility':'Primary · 5 yrs','Cycles':['Regular','ok'],'TB / PID history':['None','ok'],'Prior treatment':'None'},
+  labs:[['AMH','0.7','ng/mL','LOW',1],['Antral Follicle Count','4','foll.','LOW',1],['TSH','2.2','µIU/mL','ref 0.4–4',0],['Sperm Concentration','44','M/mL','ref ≥16',0],['Sperm Motility','50','%','ref ≥42',0]],
+  hsg:'Bilateral tubal patency confirmed', docs:['amh_report.pdf','usg_afc.pdf','semen_analysis.pdf','hsg.jpg'],
+  docNote:'Age 39, AMH 0.7, AFC 4 — clearly diminished reserve. Expedite, counsel on prognosis.',
+  aiDx:'Diminished ovarian reserve (AMH 0.7, AFC 4, age 39) — time-critical.', aiPlan:['IVF, expedite (± donor egg)','Counsel on reserve + realistic prognosis'], convFindings:['5 yrs primary','Regular cycles'] };
+PATIENTS.p5={ id:'PT-100471', name:'Sunita D.', age:33, partnerAge:35, bmi:'25 · normal', loc:'Godhra, GJ · Tier 3', married:'4 yrs', complaint:'Primary infertility, 3 yrs',
+  history:{'Infertility':'Primary · 3 yrs','Cycles':['Regular','ok'],'TB / PID history':['Prior PID','flag'],'Prior treatment':'None'},
+  labs:[['AMH','2.6','ng/mL','ref 1–4',0],['Antral Follicle Count','13','foll.','ref 8–24',0],['Sperm Concentration','50','M/mL','ref ≥16',0],['Sperm Motility','52','%','ref ≥42',0]],
+  hsg:'Both tubes blocked', docs:['hsg_report.jpg','amh.pdf','semen_analysis.pdf'],
+  docNote:'HSG shows bilateral tubal block, prior PID. Tubal factor — IVF.',
+  aiDx:'Bilateral tubal block (tubal factor); normal reserve + semen.', aiPlan:['IVF (bypass blocked tubes)','Assess for hydrosalpinx before transfer'], convFindings:['3 yrs primary','Prior PID history'] };
+PATIENTS.p6={ id:'PT-100449', name:'Anjali T.', age:30, partnerAge:33, bmi:'24 · normal', loc:'Nadiad, GJ · Tier 3', married:'4 yrs', complaint:'Primary infertility, 3 yrs',
+  history:{'Infertility':'Primary · 3 yrs','Cycles':['Regular','ok'],'TB / PID history':['None','ok'],'Prior treatment':['1× IUI, failed','flag']},
+  labs:[['AMH','2.2','ng/mL','ref 1–4',0],['Antral Follicle Count','12','foll.','ref 8–24',0],['Sperm Concentration','9','M/mL','LOW',1],['Sperm Motility','30','%','LOW',1]],
+  hsg:'Bilateral tubal patency confirmed', docs:['amh.pdf','semen_analysis.pdf','hsg.jpg'],
+  docNote:'Mild-moderate male factor (low count + motility), 1 failed IUI. → IVF-ICSI.',
+  aiDx:'Male factor (oligoasthenospermia); normal reserve, patent tubes.', aiPlan:['IVF-ICSI','Baseline USG + estradiol, Day 2'], convFindings:['3 yrs primary','1 failed IUI'] };
+
+const CLINICS = [
+  ['Shreeji Clinic','Nadiad','Tier 3','Active',24],['Aastha Nursing Home','Anand','Tier 2','Active',18],
+  ['Sparsh Clinic','Bharuch','Tier 3','Active',31],['Jeevan Clinic','Vyara','Tier 3','Onboarding',3],
+  ['Matru Clinic','Godhra','Tier 3','Active',12],['Sanjeevani','Palanpur','Tier 2','Active',22],
+  ['Nova Care','Himmatnagar','Tier 3','Active',9],['Aarogya','Deesa','Tier 3','Onboarding',2],
+];
+let REFERRALS = [
+  ['PT-100481','Meena R.','Shreeji Clinic · Nadiad','13 Jun','Approved','—'],
+  ['PT-100488','Farida K.','Sparsh Clinic · Bharuch','13 Jun','Action req.','Azoospermia'],
+  ['PT-100517','Kavita S.','Aastha · Anand','12 Jun','Pending','—'],
+  ['PT-100463','Rekha M.','Sanjeevani · Palanpur','12 Jun','Approved','Low AMH'],
+  ['PT-100455','Nita P.','Matru · Godhra','11 Jun','Approved','—'],
+];
+
+/* ---------------- ROUTER ---------------- */
+document.getElementById('nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.m) go(b.dataset.m); });
+function go(m){ S.module=m; document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); render(); }
+function render(){
+  const a=document.getElementById('app');
+  if(S.module==='onboarding') a.innerHTML=viewOnboarding();
+  else if(S.module==='reception') a.innerHTML=viewReception();
+  else if(S.module==='doctor') a.innerHTML=viewDoctor();
+  else if(S.module==='hub') a.innerHTML=viewHub();
+}
+
+/* ---------------- MODULE A · ONBOARDING ---------------- */
+let onbStep=1;
+function viewOnboarding(){
+  return `<div class="eyebrow">Module A · SETU platform owner</div>
+  <h1 class="page">Clinic Onboarding</h1>
+  <div class="sub">You (SETU) bring a spoke clinic and its staff onto the network — the Pass-based protocol and thresholds are pushed to every seat.</div>
+  <div class="steps">
+    <div class="stepn ${onbStep>=1?'on':''}">1 · Clinic details</div>
+    <div class="stepn ${onbStep>=2?'on':''}">2 · Staff seats</div>
+    <div class="stepn ${onbStep>=3?'on':''}">3 · Practitioner verification</div>
+  </div>
+  <div class="card" id="onbcard">${onbBody()}</div>`;
+}
+function onbBody(){
+  if(onbStep===1) return `<div class="grid2">
+     <div class="field"><label>Clinic legal name</label><input value="Shreeji Clinic"></div>
+     <div class="field"><label>Tier category</label><select><option>Tier 3</option><option>Tier 2</option></select></div>
+     <div class="field"><label>Town / city</label><input value="Nadiad, Gujarat"></div>
+     <div class="field"><label>Clinic phone</label><input value="+91 •••• ••1234"></div></div>
+     <div class="field"><label>Address</label><input value="Station Road, Nadiad"></div>
+     <div style="text-align:right"><button class="btn" onclick="onbNext()">Next →</button></div>`;
+  if(onbStep===2) return `<div class="grid2">
+     <div class="field"><label>Doctor seats</label><input type="number" value="1"></div>
+     <div class="field"><label>Receptionist seats</label><input type="number" value="1"></div></div>
+     <div class="muted">Credentials will be auto-provisioned for each seat on submit. Solo clinics collapse to a single combined workspace.</div>
+     <div style="text-align:right;margin-top:14px"><button class="btn ghost" onclick="onbStep=1;rerenderOnb()">← Back</button> <button class="btn" onclick="onbNext()">Next →</button></div>`;
+  return `<div class="grid2">
+     <div class="field"><label>Practitioner full name</label><input value="Dr. R. Deshpande"></div>
+     <div class="field"><label>Qualification</label><select><option>MBBS / MD</option><option>BAMS</option><option>BDS</option></select></div></div>
+     <div class="field"><label>Medical registration ID</label><input value="[Registration verified]"></div>
+     <div class="field"><label>Degree certificate (PDF)</label><input value="MBBS_certificate.pdf ✓"></div>
+     <div class="muted">Government identifiers are masked and redacted in the backend: <b>[Aadhaar / National ID Redacted]</b>. Prescriber rights auto-set by qualification (MBBS+ may initiate ovulation induction; BAMS screens, hub prescribes).</div>
+     <div style="text-align:right;margin-top:14px"><button class="btn ghost" onclick="onbStep=2;rerenderOnb()">← Back</button> <button class="btn deep" onclick="alert('Clinic onboarded ✓  Seats provisioned. Protocol + thresholds pushed to clinic.')">Provision clinic ✓</button></div>`;
+}
+function onbNext(){ onbStep=Math.min(3,onbStep+1); rerenderOnb(); }
+function rerenderOnb(){ render(); }
+
+/* ---------------- MODULE B · RECEPTION ---------------- */
+let recState={mode:'search',found:null,uploaded:false};
+function viewReception(){
+  return `<div class="eyebrow">Module B · Receptionist</div>
+  <h1 class="page">Front Desk — intake</h1>
+  <div class="sub">Identify new vs returning patient, capture the complaint, and upload every report the couple brought. MedGemma extracts and normalises them, then the case routes to the doctor's queue.</div>
+  <div class="card">
+    <div class="searchbox">
+      <input id="psearch" placeholder="Search by name, phone or patient ID…" value="">
+      <button class="btn" onclick="recSearch()">Search</button>
+      <button class="btn ghost" onclick="recNew()">+ New patient</button>
+    </div>
+    <div id="recresult">${recResultHtml()}</div>
+  </div>`;
+}
+function recResultHtml(){
+  if(recState.mode==='search') return `<div class="muted">Try searching “Meena”, or hit <b>+ New patient</b> to run the intake + upload flow.</div>`;
+  if(recState.mode==='found'){ const p=recState.found;
+    return `<div class="presult"><div class="avatar">${p.name[0]}</div>
+      <div style="flex:1"><b>${p.name}</b> · ${p.id} · ${p.age}y<div class="muted">${p.complaint} · ${p.loc}</div></div>
+      <span class="chip green">Returning patient</span>
+      <button class="btn" onclick="routeToDoctor('${keyOf(p)}')">Route to doctor's queue →</button></div>`;
+  }
+  if(recState.mode==='new'){
+    return `<div class="grid2">
+      <div class="field"><label>Patient name</label><input id="nn" value="New Patient"></div>
+      <div class="field"><label>Age</label><input value="30"></div></div>
+      <div class="field"><label>Primary complaint / duration</label><input value="Primary infertility, 2 yrs"></div>
+      <div class="divider"></div>
+      <div class="ph">Universal document ingestion <span class="demo-tag">◇ MedGemma · demo</span></div>
+      <div class="upzone" id="upz" onclick="runMedGemma()">
+        <div style="font-size:26px">📄⬆️</div>
+        <b>Drop the couple's reports here</b><div class="muted">mixed labs · handwritten notes · phone photos · any format — click to simulate upload</div>
+      </div>
+      <div id="scanarea"></div>
+      <div class="divider"></div>
+      <div class="ph">Or read a REAL report with Claude vision <span class="demo-tag" style="color:var(--green);background:var(--greenbg)">● live</span></div>
+      <input type="file" id="liveFile" accept="image/*,.pdf" style="display:none" onchange="liveExtract(this)">
+      <button class="btn ghost" style="width:100%" onclick="document.getElementById('liveFile').click()">📷 Upload a real report → live AI</button>
+      <div id="liveExtractOut" style="margin-top:10px"></div>
+    </div>`;
+  }
+}
+function keyOf(p){ return Object.keys(PATIENTS).find(k=>PATIENTS[k]===p); }
+function recSearch(){ const q=(document.getElementById('psearch').value||'meena').toLowerCase();
+  const p=Object.values(PATIENTS).find(x=>x.name.toLowerCase().includes(q)||x.id.toLowerCase().includes(q))||PATIENTS.p1;
+  recState={mode:'found',found:p}; document.getElementById('recresult').innerHTML=recResultHtml(); }
+function recNew(){ recState={mode:'new'}; document.getElementById('recresult').innerHTML=recResultHtml(); }
+function runMedGemma(){
+  const area=document.getElementById('scanarea');
+  const files=['AMH_assay.pdf · Hormone panel','HSG_report_scan.jpg · Imaging','semen_analysis.pdf · Andrology','intake_handwritten.jpg · Intake note'];
+  area.innerHTML=`<div style="margin-top:12px" class="ph">MedGemma · extracting + normalising <span class="demo-tag">◇ demo</span></div>
+    <div>${files.map(f=>`<span class="filechip">📄 ${f}</span>`).join('')}</div>
+    <div style="margin-top:12px;background:#f4f8f8;border-radius:8px;padding:12px">
+      <div class="muted" id="scanmsg">Reading documents…</div>
+      <div style="background:#e2eaea;border-radius:4px;margin-top:8px"><div class="scan" id="scanbar"></div></div>
+    </div>`;
+  const msgs=['Detecting document types…','OCR on handwritten intake note…','Normalising lab units + reference ranges…','Reconciling values across 4 labs…','Structured case file ready ✓'];
+  let i=0; const bar=document.getElementById('scanbar'), msg=document.getElementById('scanmsg');
+  const t=setInterval(()=>{ i++; bar.style.width=(i*20)+'%'; msg.textContent=msgs[Math.min(i-1,4)];
+    if(i>=5){ clearInterval(t); msg.innerHTML='<b style="color:var(--green)">Structured case file ready ✓</b>';
+      area.innerHTML+=`<div style="text-align:right;margin-top:12px"><button class="btn" onclick="routeToDoctor('p1')">Route to doctor's queue →</button></div>`; }
+  },600);
+}
+function routeToDoctor(k){ S.patient=k; go('doctor'); }
+
+/* ---------------- MODULE C · DOCTOR CONSOLE ---------------- */
+function viewDoctor(){
+  const p=PATIENTS[S.patient]; const inc=p.incomplete && !allLabsDone();
+  return `<div class="pstrip">
+      <span class="eyebrow">Doctor Console</span>
+      <span class="pname">${p.name}</span>
+      <span class="pmeta num">· ${p.id} · ${p.age}y · ${p.complaint}</span>
+      <span style="margin-left:auto" class="chip">📄 ${p.docs.length} raw records</span>
+      <span class="demo-tag">◇ Mock MedGemma engine</span>
+    </div>
+    <div class="console">
+      <div class="rail">
+        <div class="card"><div class="ch">Demographics</div>
+          <div class="kv"><span class="k">Female age</span><span class="v num">${p.age}</span></div>
+          <div class="kv"><span class="k">Partner age</span><span class="v num">${p.partnerAge}</span></div>
+          <div class="kv"><span class="k">BMI</span><span class="v">${p.bmi}</span></div>
+          <div class="kv"><span class="k">Location</span><span class="v">${p.loc}</span></div>
+          <div class="kv"><span class="k">Married</span><span class="v">${p.married}</span></div>
+        </div>
+        <div class="card" id="historycard"><div class="ch">Clinical history</div>
+          ${Object.entries(p.history).map(([k,v])=>{const val=Array.isArray(v)?v[0]:v;const cls=Array.isArray(v)?v[1]:'';return `<div class="kv"><span class="k">${k}</span><span class="v ${cls}">${val}</span></div>`}).join('')}
+          <div style="font-size:9.5px;color:var(--deep);background:var(--pale);border-radius:6px;padding:6px 8px;margin-top:8px">↳ Captured via AI guided intake + in-room voice (below).</div>
+        </div>
+      </div>
+      <div class="main">
+        ${voicePanel()}
+        <div class="card">
+          <div class="ph">Normalized diagnostics — MedGemma-extracted from ${p.docs.length} reports</div>
+          <div class="paramgrid">
+            ${p.labs.map(l=>`<div class="pcell ${l[4]===1?'flag':''}"><div class="lab">${l[0]}</div>
+              <div class="val num">${l[1]}<u>${l[2]}</u>${l[3]?`<span class="ref">${l[3]}</span>`:''}</div></div>`).join('')}
+            <div class="pcell" style="width:100%"><div class="lab">HSG Imaging</div><div class="val" style="font-size:13px;color:${p.hsg.includes('confirmed')?'var(--green)':'var(--soft)'}">${p.hsg}${p.hsg.includes('confirmed')?' ✓':''}</div></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn" onclick="liveDiagnose()">⚡ Run live AI diagnosis (Claude)</button></div>
+        <div id="intelligence">${intelligence(p,inc)}</div>
+        <div class="foot">
+          <div class="ring"></div>
+          <div><b style="font-size:12.5px">Hub Specialist Sign-off</b><div class="muted">${S.sentForApproval[S.patient]?'Pending hub specialist approval — now in the hub queue':signoffText(p)}</div></div>
+          <div style="margin-left:auto;display:flex;gap:10px">
+            <button class="btn ghost">Save draft</button>
+            ${footerAction(p,inc)}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+function signoffText(p){ if(p===PATIENTS.p3) return 'Azoospermia — mandatory hub review before anything told to patient'; return 'Plan ready — send for hub specialist sign-off'; }
+function footerAction(p,inc){
+  const k=S.patient;
+  if(inc) return `<button class="btn deep" disabled style="opacity:.45">Send for approval (pending tests)</button>`;
+  if(S.sentForApproval[k]) return `<button class="btn deep" disabled style="opacity:.55">Sent to hub ✓</button>`;
+  return `<button class="btn deep" onclick="sendForApproval('${k}')">Send for approval at hub →</button>`;
+}
+function allLabsDone(){ return ['amh','afc','hsg'].every(x=>S.lab[x]==='done'); }
+function labRow(m){
+  const st=S.lab[m.key]; let right;
+  if(st==='done') right=`<span class="chip green">Result received ✓</span>`;
+  else if(st==='booked') right=`<span class="chip amber">Booked · syncing…</span>`;
+  else right=`<button class="btn" style="padding:7px 12px;font-size:12px" onclick="sendForTesting('${m.key}')">Send for testing →</button>`;
+  return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)">
+    <div style="flex:1"><b style="font-size:12.8px">${m.name}</b><div class="muted">${m.why} · partnered lab: ${m.lab}</div></div>${right}</div>`;
+}
+function sendForTesting(key){
+  S.lab[key]='booked'; refreshIntel();
+  setTimeout(()=>{ S.lab[key]='done'; applyResult(key); render(); },1800);
+}
+function applyResult(key){
+  const p=PATIENTS.p2, m=MISSING.find(x=>x.key===key);
+  if(m.result){ const i=p.labs.findIndex(l=>l[0]===m.result[0]); if(i>=0)p.labs[i]=m.result; else p.labs.push(m.result); }
+  if(m.hsg) p.hsg=m.hsg;
+}
+function refreshIntel(){ const p=PATIENTS[S.patient]; const inc=p.incomplete && !allLabsDone(); const el=document.getElementById('intelligence'); if(el) el.innerHTML=intelligence(p,inc); }
+function clinicOf(p){ return p===PATIENTS.p1?'Shreeji · Nadiad':p===PATIENTS.p2?'Aastha · Anand':'Sparsh · Bharuch'; }
+function dxSummary(p){ return p===PATIENTS.p1?'Mild male factor → IUI at hub':p===PATIENTS.p2?'Anovulation (PCOS) → ovulation induction (spoke)':'Azoospermia → IVF-ICSI'; }
+function sendForApproval(k){ const p=PATIENTS[k];
+  if(!S.hubQueue.find(q=>q.id===p.id)) S.hubQueue.push({name:p.name,id:p.id,clinic:clinicOf(p),dx:dxSummary(p),status:'pending',pkey:k});
+  S.sentForApproval[k]=true; render();
+  setTimeout(()=>alert('Sent to hub specialist for sign-off.\nTrack it in Hub Command → Specialist Approval Queue.'),50);
+}
+function intelligence(p,inc){
+  if(inc){
+    return `<div class="ic" style="border-left:4px solid var(--amber)">
+      <div class="icn"><span class="n" style="background:var(--amber)">!</span><h3 style="color:var(--amber)">Tests required — order to activate the pathway</h3></div>
+      <p class="muted">Only the missing pivotal tests are requested; everything else is on file. Each links to a partnered local lab — the patient books here, and results sync back to SETU automatically for analysis.</p>
+      ${MISSING.map(m=>labRow(m)).join('')}
+      <p class="muted" style="margin-top:10px">Provisional read: irregular cycles + PCOS suspected → likely a spoke ovulation-induction case once reserve + tubes are confirmed.</p></div>`;
+  }
+  // build tests/diagnosis/treatment per patient
+  let tests,diag,tx;
+  if(p===PATIENTS.p3){
+    tests=['<div class="ok-row" style="color:#34474d;font-size:12.3px;margin-bottom:6px">Core workup complete.</div>'];
+    diag=`<p>Normal ovarian reserve. <b>Azoospermia</b> on semen analysis — no sperm in ejaculate.</p><p class="lead" style="font-weight:700"><span style="color:var(--deep)">→</span> Severe male factor.</p>`;
+    tx=['<li><span class="s">1.</span><b>IVF + ICSI</b> — mandatory hub route.</li>','<li><span class="s">2.</span>Surgical sperm retrieval / donor as needed.</li>'];
+  } else if(p===PATIENTS.p2){
+    tests=['<div style="font-size:12.3px;color:var(--green);margin-bottom:6px">● Reserve + tubal patency now confirmed via partnered labs.</div>'];
+    diag=`<p>Normal reserve (AMH 2.1, AFC 9). <b>Irregular cycles + PCOS → anovulation.</b> Patent tubes, adequate semen.</p><p style="font-weight:700"><span style="color:var(--deep)">→</span> Anovulatory (PCOS), spoke-treatable.</p>`;
+    tx=['<li><span class="s">1.</span><b>SPOKE: ovulation induction</b> (letrozole) + timed intercourse.</li>','<li><span class="s">2.</span>Correct weight / thyroid first.</li>','<li><span class="s">3.</span>Cap 3–6 cycles → escalate to hub if no conception.</li>'];
+  } else {
+    tests=[`<div style="font-size:12.3px;color:#34474d;margin-bottom:6px">● Core workup + history complete.</div>`,
+           `<div style="font-size:12.3px;color:var(--amber);margin-bottom:6px">● Advised: <b>repeat semen analysis</b> (morphology borderline).</div>`];
+    diag=`<p>Normal ovarian reserve (AMH 2.4, AFC 14). Regular cycles + no TB/PID → ovulatory, patent tubes.</p><p>Isolated <b>borderline morphology (6%)</b>; 2 prior failed OI cycles.</p><p style="font-weight:700;color:var(--ink)"><span style="color:var(--deep)">→</span> Mild male factor, favourable prognosis.</p>`;
+    tx=['<li><span class="s">1.</span><b>IUI at hub</b> (mild male factor + 2 failed OI).</li>','<li><span class="s">2.</span>Consider IVF-ICSI if IUI fails / morphology confirmed low.</li>','<li><span class="s">3.</span>Baseline USG + estradiol, Day 2.</li>'];
+  }
+  return `<div class="three">
+    <div class="ic"><div class="icn"><span class="n">1</span><h3>Tests Required</h3><span class="chip green">Complete</span></div>${tests.join('')}</div>
+    <div class="ic diag"><div class="icn"><span class="n">2</span><h3>Diagnosis</h3></div>${diag}</div>
+    <div class="ic tx"><div class="icn"><span class="n">3</span><h3>Recommended Treatment</h3><span class="chip">Provisional</span></div><ul>${tx.join('')}</ul></div>
+  </div>`;
+}
+
+/* ---- VOICE CONSULTATION PIPELINE (mock) ---- */
+function voicePanel(){
+  return `<div class="voice" id="voicepanel">
+    <h3>🎙 In-room consultation
+      <span class="demo-tag" style="background:#123f42;color:#7fd6cf">◇ WhisperFlow · Sarvam AI · MedGemma + Claude · demo</span></h3>
+    <div class="muted" style="color:#a9c9c7;font-size:12px;margin:6px 0 4px">Record the doctor–patient conversation in the local language. It is transcribed, translated to English, analysed, and merged with the records + questionnaire to update the tests &amp; diagnosis.</div>
+    <div class="pipeline">
+      <div class="stage" id="st1"><b>1 · WhisperFlow</b>capture + transcribe (Hindi)</div>
+      <div class="stage" id="st2"><b>2 · Sarvam AI</b>translate → English</div>
+      <div class="stage" id="st3"><b>3 · MedGemma + Claude</b>extract findings</div>
+      <div class="stage" id="st4"><b>4 · Integrate</b>+ records + questionnaire</div>
+    </div>
+    <button class="recbtn" id="recbtn" onclick="runVoice()">● Start consultation recording</button>
+    <button class="recbtn" id="liverecbtn" style="background:#123f42;border:1px solid #5fd0c9;margin-top:8px" onclick="liveRecord(this)">● Record LIVE (mic → Sarvam + Claude)</button>
+    <div id="voiceout"></div>
+  </div>`;
+}
+const CONVO=[
+  {who:'doc',orig:'आपकी शादी को कितने साल हुए हैं और कब से कोशिश कर रहे हैं?',eng:'How many years married, and how long have you been trying?'},
+  {who:'pat',orig:'शादी को चार साल, तीन साल से कोशिश कर रहे हैं।',eng:'Married 4 years, trying for 3 years.'},
+  {who:'doc',orig:'पीरियड्स नियमित आते हैं?',eng:'Are your periods regular?'},
+  {who:'pat',orig:'हाँ, हर महीने समय पर आते हैं।',eng:'Yes, they come on time every month.'},
+  {who:'doc',orig:'कभी टीबी या पेट का कोई ऑपरेशन हुआ है?',eng:'Any history of TB, or any abdominal/pelvic surgery?'},
+  {who:'pat',orig:'नहीं, ऐसा कुछ नहीं हुआ।',eng:'No, nothing like that.'},
+  {who:'doc',orig:'पहले कोई इलाज लिया है?',eng:'Have you taken any treatment before?'},
+  {who:'pat',orig:'दो बार दवाई से अंडा बनाने का इलाज किया, पर फायदा नहीं हुआ।',eng:'We did ovulation-induction medicine twice, but it did not work.'},
+];
+function runVoice(){
+  if(S.voiceRun) return; S.voiceRun=true;
+  const btn=document.getElementById('recbtn'); btn.className='recbtn rec';
+  btn.innerHTML=`<span class="wave"><span style="animation-delay:0s"></span><span style="animation-delay:.2s"></span><span style="animation-delay:.4s"></span><span style="animation-delay:.1s"></span></span> Recording… WhisperFlow`;
+  const out=document.getElementById('voiceout');
+  out.innerHTML=`<div class="transcript" id="tr"></div>`;
+  const tr=document.getElementById('tr');
+  setStage('st1','active');
+  let i=0;
+  const step=()=>{
+    if(i<CONVO.length){
+      const c=CONVO[i];
+      const div=document.createElement('div'); div.className='tline';
+      div.innerHTML=`<div class="who ${c.who}">${c.who==='doc'?'Doctor':'Patient'}</div><div class="orig">🇮🇳 ${c.orig}</div><div class="eng">${i>0?'⟶ '+c.eng:'⟶ translating…'}</div>`;
+      tr.appendChild(div); tr.scrollTop=tr.scrollHeight;
+      if(i===0){ setStage('st1','done'); setStage('st2','active'); }
+      // fill english (Sarvam) shortly after
+      setTimeout(()=>{ div.querySelector('.eng').innerHTML='⟶ '+c.eng; },300);
+      i++; setTimeout(step,750);
+    } else { finishVoice(); }
+  };
+  setTimeout(step,500);
+}
+function setStage(id,cls){ const e=document.getElementById(id); if(e) e.className='stage '+cls; }
+function finishVoice(){
+  const btn=document.getElementById('recbtn'); btn.className='recbtn'; btn.style.background='#123f42'; btn.innerHTML='■ Consultation ended';
+  setStage('st2','done'); setStage('st3','active');
+  const out=document.getElementById('voiceout');
+  setTimeout(()=>{
+    out.innerHTML+=`<div style="margin-top:12px" class="ph" >MedGemma + Claude · findings from conversation</div>
+      <div>
+        <span class="chip">Primary infertility · 3 yrs</span>
+        <span class="chip green">Regular cycles → ovulatory</span>
+        <span class="chip green">No TB / no pelvic surgery</span>
+        <span class="chip amber">2× ovulation induction, failed</span>
+      </div>`;
+    setStage('st3','done'); setStage('st4','active');
+    setTimeout(()=>{
+      setStage('st4','done');
+      out.innerHTML+=`<div style="margin-top:12px;background:#123f42;border-radius:9px;padding:12px">
+        <b style="color:#7fd6cf;font-size:12px">INTEGRATED with records + questionnaire → updated tests &amp; diagnosis ↓</b>
+        <div style="font-size:12px;color:#dff0ef;margin-top:6px">Conversation adds: <b>2 failed OI cycles</b> + <b>regular cycles</b> + <b>no TB</b>. Combined with normal reserve, patent tubes and borderline morphology on the records → <b>mild male factor</b>. Prior failed OI pushes the plan from "repeat OI at spoke" toward <b>IUI at the hub</b> (2nd-pass logic).</div></div>`;
+      // pulse the intelligence cards to show integration
+      const intel=document.getElementById('intelligence');
+      if(intel){ intel.style.transition='box-shadow .4s'; intel.style.boxShadow='0 0 0 3px #5fd0c9'; setTimeout(()=>intel.style.boxShadow='none',1400); }
+      S.voiceRun=false;
+    },900);
+  },700);
+}
+
+/* ---------------- MODULE D · HUB COMMAND ---------------- */
+function viewHub(){
+  return `<div class="eyebrow">Module D · Hub specialist + IVF hospital admin + SETU owner</div>
+  <h1 class="page">Hub Command</h1>
+  <div class="sub">Watch the network, and sign off on incoming diagnoses. Approving a case begins patient onboarding on the hub side.</div>
+  <div class="steps" style="max-width:760px">
+    <button class="stepn ${S.hubTab==='dash'?'on':''}" style="cursor:pointer" onclick="hubGo('dash')">Command Center</button>
+    <button class="stepn ${S.hubTab==='approvals'?'on':''}" style="cursor:pointer" onclick="hubGo('approvals')">Specialist Approval Queue${pendingCount()?` · ${pendingCount()}`:''}</button>
+    <button class="stepn ${S.hubTab==='onboarding'?'on':''}" style="cursor:pointer" onclick="hubGo('onboarding')">Onboarding${onbCount()?` · ${onbCount()}`:''}</button>
+  </div>
+  ${S.hubTab==='dash'?hubDash():S.hubTab==='approvals'?hubApprovals():hubOnboarding()}`;
+}
+function hubDash(){
+  return `<div id="hubpipeline" class="card" style="margin-bottom:14px;display:flex;gap:34px;align-items:center">
+    <div><div style="font-size:11.5px;color:var(--soft)">In approval queue</div><div style="font-size:24px;font-weight:800" class="num">${pendingCount()}</div></div>
+    <div><div style="font-size:11.5px;color:var(--soft)">In onboarding</div><div style="font-size:24px;font-weight:800" class="num">${onbCount()}</div></div>
+    <div class="muted">Pipeline: GP sends → Specialist Approval Queue → (approve) → Onboarding (counselor) → first hub consult.</div>
+  </div>
+  <div class="grid3" style="margin-bottom:14px">
+    <div class="stat"><div class="lab">Connected spoke clinics</div><div class="big num">${CLINICS.length}</div><div class="tr">▲ 3 onboarding this month</div></div>
+    <div class="stat"><div class="lab">Referrals this month</div><div class="big num">${S.refsInjected?67:25}</div><div class="tr">▲ trigger (20) cleared</div></div>
+    <div class="stat"><div class="lab">Intake → cycle (avg)</div><div class="big num">36<span style="font-size:15px"> hrs</span></div><div class="tr">▼ 12% faster</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="ph">Connected clinics ledger</div>
+      <table><thead><tr><th>Clinic</th><th>Town</th><th>Status</th><th>Referrals</th></tr></thead><tbody>
+      ${CLINICS.map(c=>`<tr class="clk"><td><b>${c[0]}</b></td><td>${c[1]} · ${c[2]}</td><td>${c[3]==='Active'?'<span class="status appr">Active</span>':'<span class="status pend">Onboarding</span>'}</td><td class="num">${c[4]}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="card"><div class="ph">Referral ingestion vault ${S.refsInjected?'<span class="chip amber">+42 injected</span>':''}</div>
+      <table><thead><tr><th>Patient</th><th>Origin clinic</th><th>Status</th><th>Flag</th></tr></thead><tbody>
+      ${REFERRALS.map(r=>`<tr class="clk" onclick="openRef('${r[1]}')"><td><b>${r[1]}</b><div class="muted">${r[0]}</div></td><td>${r[2].split(' · ')[0]}</td>
+        <td>${statusBadge(r[4])}</td><td>${r[5]!=='—'?`<span class="chip red">${r[5]}</span>`:'—'}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  </div>`;
+}
+function pendingCount(){ return S.hubQueue.filter(q=>q.status==='pending').length; }
+function onbCount(){ return S.hubQueue.filter(q=>q.status==='onboarding').length; }
+/* shared dossier */
+function caseDossier(pk){
+  const p=PATIENTS[pk];
+  const received=p.labs.filter(l=>l[1]!=='—'); const missing=p.labs.filter(l=>l[1]==='—');
+  return `<div class="grid2">
+    <div class="card"><div class="ph">Demographics + medical history</div>
+      <div class="kv"><span class="k">Age / partner</span><span class="v num">${p.age} / ${p.partnerAge}</span></div>
+      <div class="kv"><span class="k">BMI</span><span class="v">${p.bmi}</span></div>
+      <div class="kv"><span class="k">Location</span><span class="v">${p.loc}</span></div>
+      ${Object.entries(p.history).map(([k,v])=>{const val=Array.isArray(v)?v[0]:v;const c=Array.isArray(v)?v[1]:'';return `<div class="kv"><span class="k">${k}</span><span class="v ${c}">${val}</span></div>`}).join('')}
+    </div>
+    <div class="card"><div class="ph">Previous records + tests from partner centers</div>
+      ${p.docs.map(d=>`<span class="filechip">📄 ${d}</span>`).join('')}
+      <div class="divider"></div>
+      ${received.map(l=>`<div class="kv"><span class="k">${l[0]}</span><span class="v ${l[4]===1?'flag':''}">${l[1]} ${l[2]}</span></div>`).join('')}
+      <div class="kv"><span class="k">HSG</span><span class="v ${p.hsg.includes('confirmed')?'ok':'flag'}">${p.hsg}</span></div>
+      ${missing.length?`<div style="margin-top:10px"><span class="chip amber">Missing: ${missing.map(l=>l[0]).join(', ')}</span></div>`:`<div style="margin-top:10px"><span class="chip green">Workup complete ✓</span></div>`}
+    </div>
+  </div>
+  <div class="grid2" style="margin-top:12px">
+    <div class="card"><div class="ph">Conversation with doctor · WhisperFlow + Sarvam + Claude</div>
+      ${(p.convFindings||[]).map(c=>`<span class="chip">${c}</span>`).join('')||'<div class="muted">No recorded consultation.</div>'}
+      <div class="divider"></div>
+      <div class="ph" style="color:var(--soft)">Doctor's note</div><p style="font-size:12.5px;color:#34474d">${p.docNote||'—'}</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--teal)"><div class="ph">AI-generated diagnosis + inputs</div>
+      <p style="font-size:13px"><b>Diagnosis:</b> ${p.aiDx}</p>
+      <div class="ph" style="margin-top:8px">AI recommended plan</div>
+      <ul style="list-style:none">${(p.aiPlan||[]).map(x=>`<li style="font-size:12.5px;color:#34474d;padding:3px 0">• ${x}</li>`).join('')}</ul>
+    </div>
+  </div>`;
+}
+/* SPECIALIST APPROVAL */
+function hubApprovals(){
+  if(S.reviewCase!==null) return hubReview();
+  return `<div class="card"><div class="ph">Patients awaiting specialist sign-off</div>
+    <table><thead><tr><th>Patient</th><th>Origin clinic</th><th>Provisional diagnosis / plan</th><th>Action</th></tr></thead><tbody>
+    ${S.hubQueue.map((q,i)=>`<tr><td><b>${q.name}</b><div class="muted">${q.id}</div></td><td>${q.clinic}</td><td>${q.dx}</td>
+      <td>${q.status==='pending'
+        ?`<button class="btn deep" style="padding:7px 12px;font-size:12px" onclick="S.reviewCase=${i};render()">Open full case →</button>`
+        :`<span class="chip green">● Approved — in onboarding</span>`}</td></tr>`).join('')}
+    </tbody></table></div>`;
+}
+function hubReview(){
+  const q=S.hubQueue[S.reviewCase];
+  return `<button class="btn ghost" onclick="S.reviewCase=null;render()">← Back to queue</button>
+    <div style="margin-top:12px" class="pstrip"><span class="eyebrow">Specialist review</span><span class="pname">${q.name}</span><span class="pmeta">· ${q.id} · ${q.clinic}</span></div>
+    ${caseDossier(q.pkey)}
+    <div class="card" style="margin-top:12px"><div class="ph">Specialist sign-off</div>
+      <label>Your note / modification to the plan</label><textarea id="specnote" rows="2" placeholder="Confirm the AI plan, or modify…">${q.specNote||''}</textarea>
+      <div style="text-align:right;margin-top:10px">
+        ${q.status==='pending'
+          ?`<button class="btn deep" onclick="approveFromReview(${S.reviewCase})">Approve + send for onboarding →</button>`
+          :`<span class="chip green">● Approved — sent to onboarding</span>`}
+      </div>
+    </div>`;
+}
+function approveFromReview(i){
+  const t=document.getElementById('specnote'); S.hubQueue[i].specNote=(t&&t.value)||'Plan confirmed as proposed by AI.';
+  S.hubQueue[i].status='onboarding'; S.hubQueue[i].onb=[false,false,false,false,false];
+  const nm=S.hubQueue[i].name; S.reviewCase=null; S.hubTab='onboarding'; render();
+  setTimeout(()=>alert('Approved by hub specialist ✓\nSent to onboarding — a counselor will now guide '+nm+'.'),50);
+}
+/* COUNSELOR ONBOARDING */
+function hubOnboarding(){
+  if(S.onbCase!==null) return coordinatorView();
+  const any=S.hubQueue.some(q=>q.status==='onboarding');
+  if(!any) return `<div class="card"><div class="muted">No patients in onboarding yet. Approve a case in the Specialist Approval Queue and it will appear here for the counselor.</div></div>`;
+  return `<div class="card"><div class="ph">Patients in onboarding — counselor desk</div>
+    <table><thead><tr><th>Patient</th><th>Diagnosis / plan</th><th>Progress</th><th></th></tr></thead><tbody>
+    ${S.hubQueue.map((q,i)=>q.status==='onboarding'?`<tr><td><b>${q.name}</b><div class="muted">${q.id} · ${q.clinic}</div></td><td>${q.dx}</td>
+      <td class="num">${(q.onb||[]).filter(Boolean).length} / 5</td>
+      <td><button class="btn" style="padding:7px 12px;font-size:12px" onclick="S.onbCase=${i};render()">Open →</button></td></tr>`:'').join('')}
+    </tbody></table></div>`;
+}
+function coordinatorView(){
+  const q=S.hubQueue[S.onbCase]; const p=PATIENTS[q.pkey];
+  if(!q.onb)q.onb=[false,false,false,false,false];
+  const received=p.labs.filter(l=>l[1]!=='—'); const missing=p.labs.filter(l=>l[1]==='—');
+  const steps=['Welcome call to patient','Explain diagnosis + plan','Consent + documentation','Financial counseling / estimate','Schedule first hub consult'];
+  return `<button class="btn ghost" onclick="S.onbCase=null;render()">← Back to onboarding list</button>
+    <div style="margin-top:12px" class="pstrip"><span class="eyebrow">Onboarding coordinator</span><span class="pname">${q.name}</span><span class="pmeta">· ${q.id} · ${q.clinic}</span></div>
+    <div class="grid2">
+      <div>
+        <div class="card"><div class="ph">Diagnosis</div><p style="font-size:13px"><b>${p.aiDx}</b></p>
+          <ul style="list-style:none;margin-top:6px">${(p.aiPlan||[]).map(x=>`<li style="font-size:12.3px;color:#34474d;padding:2px 0">• ${x}</li>`).join('')}</ul></div>
+        <div class="card" style="margin-top:12px"><div class="ph">Medical history</div>
+          ${Object.entries(p.history).map(([k,v])=>{const val=Array.isArray(v)?v[0]:v;return `<div class="kv"><span class="k">${k}</span><span class="v">${val}</span></div>`}).join('')}</div>
+        <div class="card" style="margin-top:12px"><div class="ph">Records + tests</div>
+          ${p.docs.map(d=>`<span class="filechip">📄 ${d}</span>`).join('')}
+          <div style="margin-top:8px">${received.map(l=>`<span class="chip">${l[0]}: ${l[1]}${l[2]}</span>`).join('')}</div>
+          ${missing.length?`<div style="margin-top:6px"><span class="chip amber">Missing: ${missing.map(l=>l[0]).join(', ')}</span></div>`:''}</div>
+        <div class="card" style="margin-top:12px"><div class="ph">Notes</div>
+          <div class="ph" style="color:var(--soft)">Doctor's note</div><p style="font-size:12.4px;color:#34474d">${p.docNote||'—'}</p>
+          <div class="divider"></div>
+          <div class="ph" style="color:var(--soft)">Hub specialist's note</div><p style="font-size:12.4px;color:#34474d">${q.specNote||'—'}</p></div>
+      </div>
+      <div>
+        <div id="onbchecklist" class="card"><div class="ph">Onboarding checklist</div>
+          ${steps.map((s,si)=>`<label style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer">
+            <input type="checkbox" style="width:auto;margin:0" ${q.onb[si]?'checked':''} onchange="toggleOnb(${S.onbCase},${si})"><span style="font-size:13px">${s}</span></label>`).join('')}
+          <div style="margin-top:14px;display:flex;gap:10px">
+            <button class="btn" onclick="alert('Calling ${q.name}… (demo)')">📞 Call patient</button>
+            <button class="btn ghost" onclick="alert('WhatsApp thread opened with ${q.name} (demo)')">💬 WhatsApp</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px"><div class="ph">Conversation with doctor</div>
+          ${(p.convFindings||[]).map(c=>`<span class="chip">${c}</span>`).join('')||'<div class="muted">—</div>'}</div>
+      </div>
+    </div>`;
+}
+function toggleOnb(i,si){ S.hubQueue[i].onb[si]=!S.hubQueue[i].onb[si]; render(); }
+function hubGo(t){ S.hubTab=t; S.reviewCase=null; S.onbCase=null; render(); }
+function statusBadge(s){ if(s==='Approved')return '<span class="status appr">Approved</span>'; if(s.includes('Action'))return '<span class="status act">Action req.</span>'; return '<span class="status pend">Pending</span>'; }
+function openRef(name){ alert('Opening full case file for '+name+': structured diagnostics, MedGemma extraction, conversation findings, AI plan + raw reports. (demo)'); }
+function injectReferrals(){ S.refsInjected=true; if(S.module==='hub') render(); }
+
+/* ---------------- SIM PANEL ---------------- */
+function toggleSim(){ const b=document.getElementById('simbody'); b.classList.toggle('collapsed'); }
+function toggleStaff(){ S.staff=S.staff==='team'?'solo':'team'; const t=document.getElementById('tgStaff');
+  t.textContent=S.staff==='team'?'Team':'Solo'; t.classList.toggle('on',S.staff==='team');
+  const l=document.getElementById('layoutlbl'); if(l) l.textContent=S.staff==='team'?'Multi-User Team':'Solo Practitioner'; }
+function toggleRecords(){ S.complete=!S.complete; const t=document.getElementById('tgRec');
+  t.textContent=S.complete?'Complete':'Missing'; t.classList.toggle('on',S.complete);
+  S.patient=S.complete?'p1':'p2'; if(S.module==='doctor') render(); }
+
+/* ---------------- GUIDED TOUR ---------------- */
+const TOUR=[
+  {m:'doctor',sel:null,title:'Welcome to SETU',body:'This tour follows one couple through all five roles: patient → receptionist → GP → hub specialist → you (the SETU / hospital owner). Click Next.'},
+  {m:'onboarding',sel:'#onbcard',title:'1 · You onboard a clinic',body:'As the SETU platform owner you bring a spoke clinic and its staff onto the network. The Pass-based protocol and clinical thresholds are pushed to every seat, and prescriber rights are set by qualification.'},
+  {m:'reception',sel:'.searchbox',title:'2 · The receptionist',body:'The receptionist finds a returning patient or creates a new one, captures the complaint, and uploads the couple\u2019s messy reports — mixed labs, handwritten notes, phone photos.'},
+  {m:'reception',sel:'#recresult',title:'2 · MedGemma reads the documents',body:'Hit “+ New patient”, then click the upload zone: MedGemma (demo) OCRs and normalises every report into one clean case file, reconciling values across labs — then routes the case to the doctor.'},
+  {m:'doctor',sel:'.rail',title:'3 · The GP sees a structured case',body:'The GP opens the file: quiet demographics + clinical history on the left, so the "magic" stays the hero. History was captured by AI guided intake and the in-room voice tool.'},
+  {m:'doctor',sel:'#voicepanel',title:'3 · The in-room conversation',body:'New: the GP records the consultation. WhisperFlow transcribes the local language, Sarvam AI translates to English, and MedGemma + Claude extract clinical findings — then merge them with the records and questionnaire. Click "Start consultation recording" to watch it.'},
+  {m:'doctor',patient:'p1',sel:'#intelligence',title:'3 · Tests · Diagnosis · Treatment',body:'The engine returns the three things a generalist can act on — tests required, a clear diagnosis, and a recommended treatment — combining records + questionnaire + the conversation, with the Pass-based referral logic.'},
+  {m:'doctor',patient:'p2',sel:'#intelligence',title:'3 · When tests are missing',body:'If pivotal tests are missing, the console lists exactly which ones — each with a Send-for-testing button wired to a partnered local lab. The patient books on the spot; results sync straight back to SETU to complete the diagnosis. Try the buttons.'},
+  {m:'doctor',patient:'p1',sel:'.foot',title:'4 · Send for approval at hub',body:'Once the diagnosis is ready, the GP hits “Send for approval at hub.” Every plan — even spoke ovulation induction — goes to the hub specialist for sign-off before the patient is told anything.'},
+  {m:'hub',hubTab:'dash',sel:'#hubpipeline',title:'5 · The pipeline at a glance',body:'The command centre opens with the live pipeline — how many cases are in the approval queue and in onboarding — so you see the whole flow, alongside connected clinics, referral velocity and the ≥20 referrals/month trigger that funds hospital #1.'},
+  {m:'hub',hubTab:'dash',sel:'.grid2',title:'5 · Connected clinics + referral vault',body:'Below: every connected spoke clinic, and the referral vault — every inbound, pre-worked-up patient with its full case file and risk flags.'},
+  {m:'hub',hubTab:'approvals',reviewCase:0,sel:'.grid2',title:'5 · Specialist reviews the full case',body:'When a GP sends a case, the specialist opens the full dossier on one screen: demographics + history, previous records, every test received from partner labs (and any still missing), the doctor conversation, the doctor’s note, and the AI diagnosis with its recommended plan — then approves with a note.'},
+  {m:'hub',hubTab:'onboarding',onbCase:2,sel:'.grid2',title:'6 · Counselor onboards the patient',body:'On approval the case flows to Onboarding. A counselor sees the doctor’s and specialist’s notes, the medical history, records, tests and diagnosis — everything needed to guide the couple.'},
+  {m:'hub',hubTab:'onboarding',onbCase:2,sel:'#onbchecklist',title:'6 · Guide the patient through onboarding',body:'The counselor works a checklist — welcome call, explain the diagnosis, consent, financial counseling, schedule the first hub consult — and calls or WhatsApps the patient right from here. That closes the loop: patient → reception → GP → lab → specialist → onboarding.'},
+  {m:'hub',hubTab:'dash',sel:'#sim',title:'7 · Simulation controls (for demos)',body:'Finally, the Simulation Engine (bottom-right): switch solo vs team layout, flip records to “missing” to trigger the Send-for-testing lab flow, or inject 50 hub referrals — handy while presenting.'},
+];
+let tourIdx=0, tourActive=false, tourOv=null, tourCard=null, lastSpot=null;
+function startTour(){ tourActive=true; tourIdx=0; tourOv=document.createElement('div'); tourOv.className='tour-ov'; document.body.appendChild(tourOv);
+  tourCard=document.createElement('div'); tourCard.className='tour-card'; document.body.appendChild(tourCard); showTourStep(); }
+function showTourStep(){
+  const step=TOUR[tourIdx];
+  if(step.patient) S.patient=step.patient;
+  if(step.hubTab) S.hubTab=step.hubTab;
+  S.reviewCase=(step.reviewCase!==undefined)?step.reviewCase:null;
+  S.onbCase=(step.onbCase!==undefined)?step.onbCase:null;
+  if(step.m!==S.module) go(step.m); else render();
+  if(lastSpot){ lastSpot.classList.remove('spot'); lastSpot=null; }
+  setTimeout(()=>{
+    let target=step.sel?document.querySelector(step.sel):null;
+    if(target){ target.classList.add('spot'); lastSpot=target; target.scrollIntoView({behavior:'smooth',block:'center'}); }
+    tourCard.innerHTML=`<div class="tc-step">STEP ${tourIdx+1} / ${TOUR.length}</div><h4>${step.title}</h4><p>${step.body}</p>
+      <div class="tc-btns">${tourIdx>0?'<button class="btn ghost" onclick="tourPrev()">← Back</button>':''}
+      <button class="btn" onclick="tourNext()">${tourIdx===TOUR.length-1?'Finish ✓':'Next →'}</button>
+      <button class="btn ghost" style="margin-left:auto" onclick="endTour()">Skip</button></div>`;
+    positionCard(target);
+  },step.m!==S.module?260:60);
+}
+function positionCard(target){
+  if(window.innerWidth<900){ tourCard.style.transform='none'; tourCard.style.left='12px'; tourCard.style.right='12px'; tourCard.style.width='auto'; tourCard.style.top='auto'; tourCard.style.bottom='calc(var(--nav-h) + 12px)'; return; }
+  tourCard.style.bottom='auto'; tourCard.style.right='auto'; tourCard.style.width='340px'; tourCard.style.transform='none';
+  if(!target){ tourCard.style.top='50%'; tourCard.style.left='50%'; tourCard.style.transform='translate(-50%,-50%)'; return; }
+  const r=target.getBoundingClientRect(); const cw=340, ch=tourCard.offsetHeight||200;
+  let top=r.bottom+14, left=r.left;
+  if(top+ch>window.innerHeight-10) top=Math.max(70,r.top-ch-14);
+  if(left+cw>window.innerWidth-10) left=window.innerWidth-cw-14;
+  tourCard.style.top=top+'px'; tourCard.style.left=Math.max(10,left)+'px';
+}
+function tourNext(){ if(tourIdx<TOUR.length-1){ tourIdx++; showTourStep(); } else endTour(); }
+function tourPrev(){ if(tourIdx>0){ tourIdx--; showTourStep(); } }
+function endTour(){ tourActive=false; if(lastSpot)lastSpot.classList.remove('spot'); if(tourOv)tourOv.remove(); if(tourCard)tourCard.remove(); }
+
+/* ---------------- INIT ---------------- */
+render();
+if(window.innerWidth<900){ var sb=document.getElementById('simbody'); if(sb) sb.classList.add('collapsed'); }
+</script>
+<script>
+/* ============ LIVE AI WIRING (calls the /api serverless routes) ============ */
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function fileToB64(file){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result).split(',')[1]);}; r.onerror=rej; r.readAsDataURL(file); }); }
+
+/* --- Doctor: real diagnosis via Claude (/api/analyze-case) --- */
+function livePatientPayload(){
+  var p=PATIENTS[S.patient];
+  var hist={}; Object.entries(p.history).forEach(function(e){ hist[e[0]]=Array.isArray(e[1])?e[1][0]:e[1]; });
+  return { age:p.age, partnerAge:p.partnerAge, bmi:p.bmi, complaint:p.complaint, married:p.married,
+    history:hist, labs:p.labs.map(function(l){return {name:l[0],value:l[1],unit:l[2],ref:l[3]};}), hsg:p.hsg };
+}
+function renderLiveDx(j){
+  var tests=(j.testsRequired||[]).map(function(t){ var dot=t.status==='missing'?'\U0001F534':(t.status==='advised'?'\U0001F7E0':'\U0001F7E2'); return '<div style="font-size:12.5px;margin-bottom:6px">'+dot+' <b>'+escapeHtml(t.name||'')+'</b> '+escapeHtml(t.note||'')+'</div>'; }).join('');
+  var tx=(j.treatment||[]).map(function(x,i){ return '<li><span class="s">'+(i+1)+'.</span>'+escapeHtml(x)+'</li>'; }).join('');
+  var flags=(j.redFlags&&j.redFlags.length)?'<p><b>Red flags:</b> '+j.redFlags.map(escapeHtml).join(', ')+'</p>':'';
+  return '<div class="three">'
+    +'<div class="ic"><div class="icn"><span class="n">1</span><h3>Tests Required</h3><span class="chip green">\u25CF live</span></div>'+(tests||'<div class="muted">\u2014</div>')+'</div>'
+    +'<div class="ic diag"><div class="icn"><span class="n">2</span><h3>Diagnosis</h3></div><p>'+escapeHtml(j.diagnosis||'')+'</p>'+flags+'<p class="muted">Locus: <b>'+escapeHtml(j.locus||'')+'</b> \u00B7 '+escapeHtml(j.referral||'')+(j.timeSensitive?' \u00B7 \u23F1 time-sensitive':'')+'</p></div>'
+    +'<div class="ic tx"><div class="icn"><span class="n">3</span><h3>Recommended Treatment</h3><span class="chip">live \u00B7 provisional</span></div><ul>'+tx+'</ul></div>'
+    +'</div>';
+}
+function liveDiagnose(){
+  var el=document.getElementById('intelligence'); if(!el) return;
+  el.innerHTML='<div class="card">\u26A1 Claude is analysing the case\u2026</div>';
+  fetch('/api/analyze-case',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({patient:livePatientPayload()})})
+    .then(function(r){return r.json();})
+    .then(function(j){
+      if(j.error){ el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div><div class="muted" style="margin-top:6px">Check ANTHROPIC_API_KEY in Vercel \u2192 Settings \u2192 Environment Variables, then redeploy.</div></div>'; return; }
+      el.innerHTML=renderLiveDx(j);
+    })
+    .catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+'). Showing demo instead.</div>'+intelligence(PATIENTS[S.patient],false); });
+}
+
+/* --- Reception: real report reading via Claude vision (/api/extract-report) --- */
+function liveExtract(input){
+  var file=input.files&&input.files[0]; if(!file) return;
+  var out=document.getElementById('liveExtractOut');
+  out.innerHTML='<div class="muted">\u26A1 Claude is reading '+escapeHtml(file.name)+'\u2026</div>';
+  fileToB64(file).then(function(b64){
+    return fetch('/api/extract-report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({imageBase64:b64,mediaType:file.type})});
+  }).then(function(r){return r.json();}).then(function(j){
+    if(j.error){ out.innerHTML='<div class="muted" style="color:var(--danger)">Error: '+escapeHtml(j.error)+'</div>'; return; }
+    var labs=(j.labs||[]).map(function(l){ return '<span class="chip '+(l.flag?'amber':'')+'">'+escapeHtml(l.name)+': '+escapeHtml(String(l.value))+' '+escapeHtml(l.unit||'')+'</span>'; }).join('');
+    out.innerHTML='<div class="ph" style="margin-top:6px">Claude extracted <span class="demo-tag" style="color:var(--green);background:var(--greenbg)">\u25CF live</span></div>'
+      +(labs||'<span class="muted">No fertility values detected in this file.</span>')
+      +(j.hsg?'<div style="margin-top:8px;font-size:13px"><b>HSG:</b> '+escapeHtml(j.hsg)+'</div>':'')
+      +'<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="routeToDoctor(\'p1\')">Route to doctor\u2019s queue \u2192</button></div>';
+  }).catch(function(e){ out.innerHTML='<div class="muted" style="color:var(--danger)">Live extract failed: '+escapeHtml(String(e))+'</div>'; });
+}
+
+/* --- Doctor: real voice via Sarvam + Claude (/api/transcribe, /api/analyze-conversation) --- */
+var _mediaRec=null, _chunks=[];
+function liveRecord(btn){
+  if(_mediaRec && _mediaRec.state==='recording'){ _mediaRec.stop(); return; }
+  if(!navigator.mediaDevices || !window.MediaRecorder){ alert('This browser has no mic recording support. Use the demo button.'); return; }
+  navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    _chunks=[]; _mediaRec=new MediaRecorder(stream);
+    _mediaRec.ondataavailable=function(e){ _chunks.push(e.data); };
+    _mediaRec.onstop=function(){
+      stream.getTracks().forEach(function(t){t.stop();});
+      btn.textContent='\u25CF Record LIVE (mic \u2192 Sarvam + Claude)'; btn.style.background='#123f42';
+      var out=document.getElementById('voiceout'); out.innerHTML='<div class="transcript"><div class="muted">\u26A1 Sarvam transcribing + translating\u2026</div></div>';
+      var blob=new Blob(_chunks,{type:'audio/webm'});
+      fileToB64(blob).then(function(b64){
+        return fetch('/api/transcribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({audioBase64:b64,mimeType:'audio/webm'})});
+      }).then(function(r){return r.json();}).then(function(j){
+        if(j.error){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Sarvam error: '+escapeHtml(j.error)+'</div>'; return; }
+        out.innerHTML='<div class="transcript"><div class="tline"><div class="who pat">Translated'+(j.language?' \u00B7 '+escapeHtml(j.language):'')+'</div><div class="eng">'+escapeHtml(j.english||'(no speech detected)')+'</div></div></div>';
+        return fetch('/api/analyze-conversation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({transcript:j.english})}).then(function(r){return r.json();}).then(function(j2){
+          if(j2 && j2.findings){ out.innerHTML+='<div style="margin-top:10px" class="ph">Findings \u00B7 Claude</div>'+(j2.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('')+(j2.mergeNote?'<div class="muted" style="margin-top:6px">'+escapeHtml(j2.mergeNote)+'</div>':''); }
+        });
+      }).catch(function(e){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Live voice failed: '+escapeHtml(String(e))+'</div>'; });
+    };
+    _mediaRec.start();
+    btn.textContent='\u25A0 Stop recording (live)'; btn.style.background='#c0392b';
+  }).catch(function(e){ alert('Mic permission needed for live recording. Use the demo button instead.\n'+e); });
+}
+</script>
+</body>
+</html>
