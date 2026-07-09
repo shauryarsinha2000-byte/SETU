@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const buf = Buffer.from(audioBase64, "base64");
     const form = new FormData();
     form.append("file", new Blob([buf], { type: mimeType || "audio/webm" }), "audio.webm");
-    form.append("model", "saaras:v2.5");
+    form.append("model", "saaras:v3");
     // translate => output is English regardless of the spoken Indian language
     form.append("mode", "translate");
 
