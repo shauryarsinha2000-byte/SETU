@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SETU — Hub-and-Spoke IVF Network (Prototype)</title>
 <style>
-
+ 
   :root{ --teal:#16807c; --deep:#0f5f5c; --ink:#1d2b31; --soft:#6a868d; --bg:#eef3f3; --card:#fff; --border:#e2eaea; --line:#eef2f2; --pale:#e7f1f0; --danger:#b23b2e; --amber:#9a6b14; --amberbg:#fbf2e0; --green:#2f8f5b; --greenbg:#e6f4ec; --nav-h:64px; }
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{overflow-x:hidden;}
@@ -148,8 +148,8 @@
     .tour-card{width:340px;left:auto;right:auto;}
     .stepn{flex:0 0 auto;min-width:0;}
   }
-
-
+ 
+ 
   /* ---- auth / login ---- */
   body:not(.authed) .topbar, body:not(.authed) .tabbar, body:not(.authed) #app, body:not(.authed) .sim{display:none!important;}
   #login{position:fixed;inset:0;z-index:400;background:linear-gradient(160deg,#0f3b3e,#0b2e30);display:none;align-items:center;justify-content:center;padding:20px;}
@@ -162,7 +162,7 @@
   #userbox{display:flex;align-items:center;gap:10px;}
   .userchip{font-size:12px;color:var(--soft);} .userchip b{color:var(--ink);} .userchip .rl{text-transform:capitalize;}
   .logoutbtn{background:#fff;border:1px solid var(--border);color:var(--soft);font-size:12px;padding:8px 11px;border-radius:9px;font-weight:600;}
-
+ 
 </style>
 </head>
 <body>
@@ -197,7 +197,7 @@
   <button data-m="hub"><span class="ti">🏨</span><span class="tl">Hub</span></button>
 </nav>
 <main id="app" class="wrap"></main>
-
+ 
 <!-- Simulation panel -->
 <div class="sim" id="sim">
   <h4 onclick="toggleSim()" style="cursor:pointer">● SETU Developer Simulation Engine ▾</h4>
@@ -212,7 +212,7 @@
       <button class="toggle" onclick="location.reload()">Reset</button></div>
   </div>
 </div>
-
+ 
 <script>
 /* ---------------- STATE + MOCK DATA ---------------- */
 const S = { module:'doctor', staff:'team', complete:true, patient:'p1', voiceRun:false, refsInjected:false,
@@ -227,7 +227,7 @@ const MISSING=[
   {key:'afc',name:'Antral Follicle Count — pelvic USG',why:'transvaginal scan',lab:'Nadiad Imaging · 1.2 km',result:['Antral Follicle Count','9','foll.','ref 8–24',0]},
   {key:'hsg',name:'HSG — tubal patency',why:'imaging',lab:'Nadiad Imaging · 1.2 km',hsg:'Bilateral tubal patency confirmed'},
 ];
-
+ 
 const PATIENTS = {
   p1:{ id:'PT-100481', name:'Meena R.', age:31, partnerAge:34, bmi:'23.0 · normal', loc:'Nadiad, GJ · Tier 3',
        married:'4 yrs', complaint:'Primary infertility, 3 yrs',
@@ -252,7 +252,7 @@ const PATIENTS = {
               ['Sperm Concentration','0','M/mL','AZOOSPERMIA',1],['Sperm Motility','0','%','—',1] ],
        hsg:'Bilateral tubal patency confirmed', docs:['amh.pdf','semen_analysis.pdf','hsg.jpg'] },
 };
-
+ 
 Object.assign(PATIENTS.p1,{docNote:'Regular cycles, no TB, 2 failed OI elsewhere. Borderline morphology — favour IUI at hub.',aiDx:'Mild male factor (borderline morphology 6%); ovulatory, patent tubes, normal reserve — favourable prognosis.',aiPlan:['IUI at hub (mild male factor + 2 failed OI)','Consider IVF-ICSI if IUI fails','Baseline USG + estradiol, Day 2'],convFindings:['Primary infertility · 3 yrs','Regular cycles → ovulatory','No TB / no pelvic surgery','2× ovulation induction, failed']});
 Object.assign(PATIENTS.p2,{docNote:'Irregular cycles, PCOS, high BMI. Ordered AMH / AFC / HSG via partner labs.',aiDx:'Anovulation (PCOS); normal reserve, patent tubes, adequate semen.',aiPlan:['Spoke: ovulation induction (letrozole)','Correct weight / thyroid first','Cap 3–6 cycles → escalate to hub'],convFindings:['Irregular cycles, 40–60d','PCOS suspected']});
 Object.assign(PATIENTS.p3,{docNote:'Azoospermia on semen analysis — mandatory hub review.',aiDx:'Severe male factor — azoospermia (no sperm in ejaculate).',aiPlan:['IVF + ICSI (mandatory hub route)','Surgical sperm retrieval / donor as needed'],convFindings:['Primary infertility · 5 yrs','No TB / no pelvic surgery']});
@@ -274,7 +274,7 @@ PATIENTS.p6={ id:'PT-100449', name:'Anjali T.', age:30, partnerAge:33, bmi:'24 �
   hsg:'Bilateral tubal patency confirmed', docs:['amh.pdf','semen_analysis.pdf','hsg.jpg'],
   docNote:'Mild-moderate male factor (low count + motility), 1 failed IUI. → IVF-ICSI.',
   aiDx:'Male factor (oligoasthenospermia); normal reserve, patent tubes.', aiPlan:['IVF-ICSI','Baseline USG + estradiol, Day 2'], convFindings:['3 yrs primary','1 failed IUI'] };
-
+ 
 const CLINICS = [
   ['Shreeji Clinic','Nadiad','Tier 3','Active',24],['Aastha Nursing Home','Anand','Tier 2','Active',18],
   ['Sparsh Clinic','Bharuch','Tier 3','Active',31],['Jeevan Clinic','Vyara','Tier 3','Onboarding',3],
@@ -288,7 +288,7 @@ let REFERRALS = [
   ['PT-100463','Rekha M.','Sanjeevani · Palanpur','12 Jun','Approved','Low AMH'],
   ['PT-100455','Nita P.','Matru · Godhra','11 Jun','Approved','—'],
 ];
-
+ 
 /* ---------------- ROUTER ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.m) go(b.dataset.m); });
 function go(m){ S.module=m; document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); render(); }
@@ -299,7 +299,7 @@ function render(){
   else if(S.module==='doctor') a.innerHTML=viewDoctor();
   else if(S.module==='hub') a.innerHTML=viewHub();
 }
-
+ 
 /* ---------------- MODULE A · ONBOARDING ---------------- */
 let onbStep=1;
 function viewOnboarding(){
@@ -336,7 +336,7 @@ function onbBody(){
 }
 function onbNext(){ onbStep=Math.min(3,onbStep+1); rerenderOnb(); }
 function rerenderOnb(){ render(); }
-
+ 
 /* ---------------- MODULE B · RECEPTION ---------------- */
 let recState={mode:'search',found:null,uploaded:false};
 function viewReception(){
@@ -402,7 +402,7 @@ function runMedGemma(){
   },600);
 }
 function routeToDoctor(k){ S.patient=k; go('doctor'); }
-
+ 
 /* ---------------- MODULE C · DOCTOR CONSOLE ---------------- */
 function viewDoctor(){
   const p=PATIENTS[S.patient]; const inc=p.incomplete && !allLabsDone();
@@ -454,6 +454,10 @@ function viewDoctor(){
 function signoffText(p){ if(p===PATIENTS.p3) return 'Azoospermia — mandatory hub review before anything told to patient'; return 'Plan ready — send for hub specialist sign-off'; }
 function footerAction(p,inc){
   const k=S.patient;
+  if(p && p._caseId){
+    if(p._sent) return `<button class="btn deep" disabled style="opacity:.55">Sent to hub ✓</button>`;
+    return `<button class="btn deep" onclick="sendLiveForApproval()">Send for hub approval →</button>`;
+  }
   if(inc) return `<button class="btn deep" disabled style="opacity:.45">Send for approval (pending tests)</button>`;
   if(S.sentForApproval[k]) return `<button class="btn deep" disabled style="opacity:.55">Sent to hub ✓</button>`;
   return `<button class="btn deep" onclick="sendForApproval('${k}')">Send for approval at hub →</button>`;
@@ -514,7 +518,7 @@ function intelligence(p,inc){
     <div class="ic tx"><div class="icn"><span class="n">3</span><h3>Recommended Treatment</h3><span class="chip">Provisional</span></div><ul>${tx.join('')}</ul></div>
   </div>`;
 }
-
+ 
 /* ---- VOICE CONSULTATION PIPELINE (mock) ---- */
 function voicePanel(){
   return `<div class="voice" id="voicepanel">
@@ -591,7 +595,7 @@ function finishVoice(){
     },900);
   },700);
 }
-
+ 
 /* ---------------- MODULE D · HUB COMMAND ---------------- */
 function viewHub(){
   return `<div class="eyebrow">Module D · Hub specialist + IVF hospital admin + SETU owner</div>
@@ -666,7 +670,7 @@ function caseDossier(pk){
 /* SPECIALIST APPROVAL */
 function hubApprovals(){
   if(S.reviewCase!==null) return hubReview();
-  return `<div class="card"><div class="ph">Patients awaiting specialist sign-off</div>
+  return `<div style="margin-bottom:12px"><button class="btn" onclick="loadHubApprovals()">Live approvals (DB)</button></div><div class="card"><div class="ph">Patients awaiting specialist sign-off</div>
     <table><thead><tr><th>Patient</th><th>Origin clinic</th><th>Provisional diagnosis / plan</th><th>Action</th></tr></thead><tbody>
     ${S.hubQueue.map((q,i)=>`<tr><td><b>${q.name}</b><div class="muted">${q.id}</div></td><td>${q.clinic}</td><td>${q.dx}</td>
       <td>${q.status==='pending'
@@ -747,7 +751,7 @@ function hubGo(t){ S.hubTab=t; S.reviewCase=null; S.onbCase=null; render(); }
 function statusBadge(s){ if(s==='Approved')return '<span class="status appr">Approved</span>'; if(s.includes('Action'))return '<span class="status act">Action req.</span>'; return '<span class="status pend">Pending</span>'; }
 function openRef(name){ alert('Opening full case file for '+name+': structured diagnostics, MedGemma extraction, conversation findings, AI plan + raw reports. (demo)'); }
 function injectReferrals(){ S.refsInjected=true; if(S.module==='hub') render(); }
-
+ 
 /* ---------------- SIM PANEL ---------------- */
 function toggleSim(){ const b=document.getElementById('simbody'); b.classList.toggle('collapsed'); }
 function toggleStaff(){ S.staff=S.staff==='team'?'solo':'team'; const t=document.getElementById('tgStaff');
@@ -756,7 +760,7 @@ function toggleStaff(){ S.staff=S.staff==='team'?'solo':'team'; const t=document
 function toggleRecords(){ S.complete=!S.complete; const t=document.getElementById('tgRec');
   t.textContent=S.complete?'Complete':'Missing'; t.classList.toggle('on',S.complete);
   S.patient=S.complete?'p1':'p2'; if(S.module==='doctor') render(); }
-
+ 
 /* ---------------- GUIDED TOUR ---------------- */
 const TOUR=[
   {m:'doctor',sel:null,title:'Welcome to SETU',body:'This tour follows one couple through all five roles: patient → receptionist → GP → hub specialist → you (the SETU / hospital owner). Click Next.'},
@@ -809,7 +813,7 @@ function positionCard(target){
 function tourNext(){ if(tourIdx<TOUR.length-1){ tourIdx++; showTourStep(); } else endTour(); }
 function tourPrev(){ if(tourIdx>0){ tourIdx--; showTourStep(); } }
 function endTour(){ tourActive=false; if(lastSpot)lastSpot.classList.remove('spot'); if(tourOv)tourOv.remove(); if(tourCard)tourCard.remove(); }
-
+ 
 /* ---------------- INIT ---------------- */
 render();
 if(window.innerWidth<900){ var sb=document.getElementById('simbody'); if(sb) sb.classList.add('collapsed'); }
@@ -818,7 +822,7 @@ if(window.innerWidth<900){ var sb=document.getElementById('simbody'); if(sb) sb.
 /* ============ LIVE AI WIRING (calls the /api serverless routes) ============ */
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function fileToB64(file){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result).split(',')[1]);}; r.onerror=rej; r.readAsDataURL(file); }); }
-
+ 
 /* --- Doctor: real diagnosis via Claude (/api/analyze-case) --- */
 function livePatientPayload(){
   var p=PATIENTS[S.patient];
@@ -839,6 +843,14 @@ function renderLiveDx(j){
 function liveDiagnose(){
   var el=document.getElementById('intelligence'); if(!el) return;
   var p=PATIENTS[S.patient];
+  if(p && p._caseId){
+    el.innerHTML='<div class="card">\u26A1 Fusing this case (records + conversation + history + thresholds)\u2026</div>';
+    apiSend('/api/cases/'+p._caseId+'/analyze','POST',{}).then(function(j){
+      if(j.error){ el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div></div>'; return; }
+      var v=j.verdict||{}; el.innerHTML=renderLiveDx(v)+(v.fusionNote?'<div class="muted" style="margin-top:8px"><b>Fusion:</b> '+escapeHtml(v.fusionNote)+'</div>':'')+'<div class="chip green" style="margin-top:6px">\u2713 verdict saved to case</div>';
+    }).catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+').</div>'; });
+    return;
+  }
   var records={ labs:(p.labs||[]).map(function(l){return {name:l[0],value:l[1],unit:l[2],ref:l[3],flag:l[4]===1?1:0};}), hsg:p.hsg };
   var hist={}; Object.entries(p.history).forEach(function(e){ hist[e[0]]=Array.isArray(e[1])?e[1][0]:e[1]; });
   var payload={ records:records, history:hist, conversation:(window.LIVE_CONVO||null), patient:{age:p.age,partnerAge:p.partnerAge,bmi:p.bmi,complaint:p.complaint} };
@@ -851,7 +863,7 @@ function liveDiagnose(){
     })
     .catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+'). Showing demo instead.</div>'+intelligence(PATIENTS[S.patient],false); });
 }
-
+ 
 /* --- Reception: real report reading via Claude vision (/api/extract-report) --- */
 function liveExtract(input){
   var file=input.files&&input.files[0]; if(!file) return;
@@ -869,7 +881,7 @@ function liveExtract(input){
       +'<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="saveCaseFromExtract()">Save + send to doctor\u2019s queue \u2192</button></div>';
   }).catch(function(e){ out.innerHTML='<div class="muted" style="color:var(--danger)">Live extract failed: '+escapeHtml(String(e))+'</div>'; });
 }
-
+ 
 /* --- Doctor: real voice via Sarvam + Claude (/api/transcribe, /api/analyze-conversation) --- */
 var _mediaRec=null, _chunks=[];
 function liveRecord(btn){
@@ -889,7 +901,7 @@ function liveRecord(btn){
         if(j.error){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Sarvam error: '+escapeHtml(j.error)+'</div>'; return; }
         out.innerHTML='<div class="transcript"><div class="tline"><div class="who pat">Translated'+(j.language?' \u00B7 '+escapeHtml(j.language):'')+'</div><div class="eng">'+escapeHtml(j.english||'(no speech detected)')+'</div></div></div>';
         return fetch('/api/analyze-conversation',{method:'POST',headers:authHeaders(),body:JSON.stringify({transcript:j.english})}).then(function(r){return r.json();}).then(function(j2){
-          if(j2 && j2.findings){ window.LIVE_CONVO={findings:j2.findings,mergeNote:j2.mergeNote,source:'live consultation'}; out.innerHTML+='<div style="margin-top:10px" class="ph">Findings \u00B7 Claude</div>'+(j2.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('')+(j2.mergeNote?'<div class="muted" style="margin-top:6px">'+escapeHtml(j2.mergeNote)+'</div>':''); }
+          if(j2 && j2.findings){ window.LIVE_CONVO={findings:j2.findings,mergeNote:j2.mergeNote,transcript:j.english,demographics:j2.demographics,history:j2.history,source:'live consultation'}; saveConversationToCase(j.english,j2); out.innerHTML+='<div style="margin-top:10px" class="ph">Findings \u00B7 Claude</div>'+(j2.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('')+(j2.mergeNote?'<div class="muted" style="margin-top:6px">'+escapeHtml(j2.mergeNote)+'</div>':''); }
         });
       }).catch(function(e){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Live voice failed: '+escapeHtml(String(e))+'</div>'; });
     };
@@ -921,9 +933,78 @@ function loadDoctorQueue(){
   overlayOpen('<div class="ph">Live doctor queue (database)</div><div class="muted">Loading\u2026</div>');
   apiGet('/api/cases?queue=doctor').then(function(j){
     if(j.error){ overlayOpen('<div class="ph">Live queue</div><div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); return; }
-    var rows=(j.cases||[]).map(function(c){ var nm=(c.patient&&c.patient.name)||'Patient'; var dx=(c.ai_verdict&&c.ai_verdict.diagnosis)||'\u2014 not analysed yet'; return '<div style="border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:center"><div style="flex:1"><b>'+escapeHtml(nm)+'</b><div class="muted">'+escapeHtml(dx)+'</div></div><button class="btn" style="padding:8px 12px;font-size:12px" onclick="runCaseAnalyze(\''+c.id+'\')">\u26A1 Fuse + analyse</button></div>'; }).join('');
+    window.DQ_CASES={}; (j.cases||[]).forEach(function(c){window.DQ_CASES[c.id]=c;});
+    var rows=(j.cases||[]).map(function(c){ var nm=(c.patient&&c.patient.name)||'Patient'; var dx=(c.ai_verdict&&c.ai_verdict.diagnosis)||'\u2014 not analysed yet'; return '<div style="border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:center"><div style="flex:1"><b>'+escapeHtml(nm)+'</b><div class="muted">'+escapeHtml(dx)+'</div></div><button class="btn ghost" style="padding:8px 10px;font-size:12px" onclick="openCaseInConsole(\''+c.id+'\')">Open</button> <button class="btn" style="padding:8px 10px;font-size:12px" onclick="runCaseAnalyze(\''+c.id+'\')">\u26A1 Fuse</button></div>'; }).join('');
     overlayOpen('<div class="ph">Live doctor queue \u00B7 '+((j.cases||[]).length)+' cases (DB)</div>'+(rows||'<div class="muted">No cases yet \u2014 create one from Front Desk.</div>')+'<div id="ovlres" style="margin-top:10px"></div><div style="margin-top:12px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>');
   }).catch(function(e){ overlayOpen('<div class="muted" style="color:var(--danger)">Queue failed: '+escapeHtml(String(e))+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); });
+}
+function openCaseInConsole(id){
+  var c=(window.DQ_CASES||{})[id]; if(!c) return;
+  var pt=c.patient||{}, ev=c.evidence||{}, rec=ev.records||{};
+  var labs=(rec.labs||[]).map(function(l){ return [l.name,l.value,l.unit,l.ref,(l.flag?1:0)]; });
+  PATIENTS.live={ id:(pt.id||c.id), name:pt.name||'Patient',
+    age:(pt.age==null?'\u2014':pt.age), partnerAge:(pt.partner_age==null?'\u2014':pt.partner_age),
+    bmi:pt.bmi||'\u2014', loc:pt.location||'\u2014', married:pt.married||'\u2014', complaint:pt.complaint||'',
+    history:(ev.history||{}), labs:labs, hsg:rec.hsg||'Not recorded', docs:[], _caseId:c.id };
+  window.LIVE_CONVO = ev.conversation || null;
+  S.patient='live'; overlayClose(); go('doctor');
+  var el=document.getElementById('intelligence');
+  if(el) el.innerHTML='<div class="card"><b>Live case loaded from the database.</b><div class="muted" style="margin-top:4px">Records and history are in'+(window.LIVE_CONVO?', plus conversation findings':'')+'. Tap the \u201C\u26A1 Run live AI diagnosis\u201D button above to fuse everything into a verdict (saved to this case).</div></div>';
+}
+function saveConversationToCase(transcript, j2){
+  var p=PATIENTS[S.patient]; if(!p || !p._caseId) return;
+  apiSend('/api/cases/'+p._caseId+'/conversation','POST',{transcript:transcript,findings:j2.findings,mergeNote:j2.mergeNote,history:j2.history,demographics:j2.demographics}).then(function(r){
+    var out=document.getElementById('voiceout');
+    if(r && r.error){ if(out) out.innerHTML+='<div class="muted" style="color:#f0c66b;margin-top:6px">Save failed: '+escapeHtml(r.error)+'</div>'; return; }
+    var dem=(j2&&j2.demographics)||{}; var m={age:'age',partnerAge:'partnerAge',bmi:'bmi',location:'loc',married:'married'};
+    Object.keys(m).forEach(function(k){ var pk=m[k]; if((p[pk]==null||p[pk]===''||p[pk]==='\u2014') && dem[k]) p[pk]=dem[k]; });
+    if(out) out.innerHTML+='<div class="chip green" style="margin-top:8px">\u2713 Saved to case'+((r&&r.filled&&r.filled.length)?' \u00B7 filled '+r.filled.join(', '):'')+'</div>';
+  }).catch(function(e){ var out=document.getElementById('voiceout'); if(out) out.innerHTML+='<div class="muted" style="color:#f0c66b">Save failed: '+escapeHtml(String(e))+'</div>'; });
+}
+function sendLiveForApproval(){
+  var p=PATIENTS[S.patient]; if(!p||!p._caseId){ alert('Open a live case from the Live queue first.'); return; }
+  overlayOpen('<div class="ph">Send to hub specialist</div><label>Doctor\u2019s note for the specialist</label><textarea id="ovlnote" rows="3" placeholder="e.g. Borderline morphology, 2 failed OI \u2014 recommend IVF-ICSI. Please review."></textarea><div style="margin-top:12px;display:flex;gap:8px"><button class="btn" style="flex:1" onclick="confirmSendHub()">Send for approval \u2192</button><button class="btn ghost" onclick="overlayClose()">Cancel</button></div><div id="ovlres" style="margin-top:8px"></div>');
+}
+function confirmSendHub(){
+  var p=PATIENTS[S.patient]; var note=(document.getElementById('ovlnote')&&document.getElementById('ovlnote').value)||'';
+  var r=document.getElementById('ovlres'); if(r) r.innerHTML='<div class="muted">Sending\u2026</div>';
+  apiSend('/api/cases/'+p._caseId,'PATCH',{status:'hub_review',doctor_note:note}).then(function(j){
+    if(j.error){ if(r) r.innerHTML='<div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div>'; return; }
+    p._sent=true; overlayClose();
+    var el=document.getElementById('intelligence'); if(el) el.innerHTML='<div class="card"><span class="chip green">\u2713 Sent to hub specialist</span><div class="muted" style="margin-top:6px">Your note, the transcript and the demographics are now in the hub approval queue.</div></div>';
+  }).catch(function(e){ if(r) r.innerHTML='<div class="muted" style="color:var(--danger)">'+escapeHtml(String(e))+'</div>'; });
+}
+function loadHubApprovals(){
+  overlayOpen('<div class="ph">Live hub approvals (database)</div><div class="muted">Loading\u2026</div>');
+  apiGet('/api/cases?queue=hub_review').then(function(j){
+    if(j.error){ overlayOpen('<div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); return; }
+    window.DQ_HUB={}; (j.cases||[]).forEach(function(c){window.DQ_HUB[c.id]=c;});
+    var rows=(j.cases||[]).map(function(c){ var nm=(c.patient&&c.patient.name)||'Patient'; var dx=(c.ai_verdict&&c.ai_verdict.diagnosis)||c.referral||'\u2014 not analysed'; return '<div style="border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:center"><div style="flex:1"><b>'+escapeHtml(nm)+'</b><div class="muted">'+escapeHtml(dx)+'</div></div><button class="btn" style="padding:8px 12px;font-size:12px" onclick="openHubCase(\''+c.id+'\')">Open case \u2192</button></div>'; }).join('');
+    overlayOpen('<div class="ph">Live hub approvals \u00B7 '+((j.cases||[]).length)+' (DB)</div>'+(rows||'<div class="muted">No cases awaiting approval yet. Send one from the Doctor Console.</div>')+'<div style="margin-top:12px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>');
+  }).catch(function(e){ overlayOpen('<div class="muted" style="color:var(--danger)">'+escapeHtml(String(e))+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); });
+}
+function openHubCase(id){
+  var c=(window.DQ_HUB||{})[id]; if(!c) return;
+  var pt=c.patient||{}, ev=c.evidence||{}, rec=ev.records||{}, conv=ev.conversation||{}, v=c.ai_verdict||{};
+  var labs=(rec.labs||[]).map(function(l){return '<span class="chip '+(l.flag?'amber':'')+'">'+escapeHtml(l.name)+': '+escapeHtml(String(l.value))+' '+escapeHtml(l.unit||'')+'</span>';}).join('');
+  var findings=(conv.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('');
+  var html='<div class="ph">Specialist review \u00B7 '+escapeHtml(pt.name||'Patient')+'</div>'
+    +'<div class="card" style="margin-bottom:10px"><div class="ph">Demographics</div><div class="muted">Age '+escapeHtml(String(pt.age==null?'\u2014':pt.age))+' \u00B7 Partner '+escapeHtml(String(pt.partner_age==null?'\u2014':pt.partner_age))+' \u00B7 BMI '+escapeHtml(pt.bmi||'\u2014')+' \u00B7 '+escapeHtml(pt.location||'\u2014')+' \u00B7 Married '+escapeHtml(pt.married||'\u2014')+'</div></div>'
+    +'<div class="card" style="margin-bottom:10px"><div class="ph">Records</div>'+(labs||'<span class="muted">\u2014</span>')+(rec.hsg?'<div style="margin-top:6px;font-size:13px"><b>HSG:</b> '+escapeHtml(rec.hsg)+'</div>':'')+'</div>'
+    +'<div class="card" style="margin-bottom:10px"><div class="ph">Conversation findings</div>'+(findings||'<span class="muted">\u2014</span>')+(conv.transcript?'<div class="divider"></div><div class="ph">Transcript</div><div class="muted" style="font-size:12.5px;white-space:pre-wrap">'+escapeHtml(conv.transcript)+'</div>':'')+'</div>'
+    +'<div class="card" style="margin-bottom:10px;border-left:4px solid var(--teal)"><div class="ph">Doctor\u2019s note</div><div style="font-size:13px">'+escapeHtml(c.doctor_note||'\u2014')+'</div></div>'
+    +'<div class="card" style="margin-bottom:10px"><div class="ph">AI verdict</div><b>'+escapeHtml(v.diagnosis||'\u2014')+'</b><div class="muted" style="margin-top:4px">'+escapeHtml(v.locus||'')+' \u00B7 '+escapeHtml(v.referral||'')+'</div></div>'
+    +'<label>Specialist note</label><textarea id="ovlspec" rows="2" placeholder="Confirm or modify the plan\u2026">'+escapeHtml(c.specialist_note||'')+'</textarea>'
+    +'<div style="margin-top:12px;display:flex;gap:8px"><button class="btn deep" style="flex:1" onclick="approveHubCase(\''+id+'\')">Approve + begin onboarding \u2192</button><button class="btn ghost" onclick="loadHubApprovals()">\u2190 Back</button></div><div id="ovlres" style="margin-top:8px"></div>';
+  overlayOpen(html);
+}
+function approveHubCase(id){
+  var note=(document.getElementById('ovlspec')&&document.getElementById('ovlspec').value)||'';
+  var r=document.getElementById('ovlres'); if(r) r.innerHTML='<div class="muted">Approving\u2026</div>';
+  apiSend('/api/cases/'+id,'PATCH',{status:'onboarding',specialist_note:note}).then(function(j){
+    if(j.error){ if(r) r.innerHTML='<div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div>'; return; }
+    overlayClose(); alert('Approved \u2713 \u2014 sent to onboarding.');
+  }).catch(function(e){ if(r) r.innerHTML='<div class="muted" style="color:var(--danger)">'+escapeHtml(String(e))+'</div>'; });
 }
 function runCaseAnalyze(id){
   var r=document.getElementById('ovlres'); if(r) r.innerHTML='<div class="muted">\u26A1 Fusing records + conversation + history for this case\u2026</div>';
