@@ -149,6 +149,20 @@
     .stepn{flex:0 0 auto;min-width:0;}
   }
 
+
+  /* ---- auth / login ---- */
+  body:not(.authed) .topbar, body:not(.authed) .tabbar, body:not(.authed) #app, body:not(.authed) .sim{display:none!important;}
+  #login{position:fixed;inset:0;z-index:400;background:linear-gradient(160deg,#0f3b3e,#0b2e30);display:none;align-items:center;justify-content:center;padding:20px;}
+  body.guest #login{display:flex;}
+  .logincard{background:#fff;border-radius:18px;padding:26px 22px;width:360px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+  .lg-logo{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#2f7e84,#1c5f63);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:14px;}
+  .logincard h2{font-size:20px;margin-bottom:3px;} .lg-sub{color:var(--soft);font-size:13px;margin-bottom:18px;}
+  .demo-note{background:var(--amberbg);color:var(--amber);font-size:12px;font-weight:600;padding:9px 11px;border-radius:9px;margin-top:14px;line-height:1.5;}
+  .lg-err{color:var(--danger);font-size:12.5px;margin-top:8px;min-height:16px;}
+  #userbox{display:flex;align-items:center;gap:10px;}
+  .userchip{font-size:12px;color:var(--soft);} .userchip b{color:var(--ink);} .userchip .rl{text-transform:capitalize;}
+  .logoutbtn{background:#fff;border:1px solid var(--border);color:var(--soft);font-size:12px;padding:8px 11px;border-radius:9px;font-weight:600;}
+
 </style>
 </head>
 <body>
@@ -156,7 +170,26 @@
   <div class="logo">SE</div>
   <div class="brand"><b>SETU</b><span class="brandsub">Hub-and-Spoke IVF</span></div>
   <button class="tourtop" onclick="startTour()">▶ Tour</button>
+<div id="userbox"></div>
 </header>
+<div id="login">
+  <div class="logincard">
+    <div class="lg-logo">SE</div>
+    <h2>Sign in to SETU</h2>
+    <div class="lg-sub">Staff access · phone + OTP</div>
+    <div id="lg-step1">
+      <div class="field"><label>Phone number</label><input id="lg-phone" inputmode="numeric" placeholder="10-digit mobile"></div>
+      <button class="btn" style="width:100%" onclick="doRequestOtp()">Send OTP</button>
+    </div>
+    <div id="lg-step2" style="display:none">
+      <div class="field"><label>Enter OTP</label><input id="lg-otp" inputmode="numeric" placeholder="6-digit code" maxlength="6"></div>
+      <button class="btn" style="width:100%" onclick="doVerifyOtp()">Verify & sign in</button>
+      <button class="btn ghost" style="width:100%;margin-top:8px" onclick="lgBack()">← Change number</button>
+    </div>
+    <div class="lg-err" id="lg-err"></div>
+    <div class="demo-note">Demo mode: OTP is <b>123456</b> (no SMS sent).<br>Seeded admin: <b>7016416673</b> (Shaurya).</div>
+  </div>
+</div>
 <nav class="tabbar" id="nav">
   <button data-m="onboarding"><span class="ti">🏥</span><span class="tl">Clinics</span></button>
   <button data-m="reception"><span class="ti">📋</span><span class="tl">Front Desk</span></button>
@@ -805,10 +838,10 @@ function renderLiveDx(j){
 function liveDiagnose(){
   var el=document.getElementById('intelligence'); if(!el) return;
   el.innerHTML='<div class="card">\u26A1 Claude is analysing the case\u2026</div>';
-  fetch('/api/analyze-case',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({patient:livePatientPayload()})})
+  fetch('/api/analyze-case',{method:'POST',headers:authHeaders(),body:JSON.stringify({patient:livePatientPayload()})})
     .then(function(r){return r.json();})
     .then(function(j){
-      if(j.error){ el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div><div class="muted" style="margin-top:6px">Check ANTHROPIC_API_KEY in Vercel \u2192 Settings \u2192 Environment Variables, then redeploy.</div></div>'; return; }
+      if(j.error){ var hint=/api[_ -]?key|not set|401|authentication|x-api-key/i.test(j.error)?'<div class="muted" style="margin-top:6px">Check ANTHROPIC_API_KEY in Vercel \u2192 Settings \u2192 Environment Variables, then redeploy.</div>':''; el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div>'+hint+'</div>'; return; }
       el.innerHTML=renderLiveDx(j);
     })
     .catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+'). Showing demo instead.</div>'+intelligence(PATIENTS[S.patient],false); });
@@ -820,7 +853,7 @@ function liveExtract(input){
   var out=document.getElementById('liveExtractOut');
   out.innerHTML='<div class="muted">\u26A1 Claude is reading '+escapeHtml(file.name)+'\u2026</div>';
   fileToB64(file).then(function(b64){
-    return fetch('/api/extract-report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({imageBase64:b64,mediaType:file.type})});
+    return fetch('/api/extract-report',{method:'POST',headers:authHeaders(),body:JSON.stringify({imageBase64:b64,mediaType:file.type})});
   }).then(function(r){return r.json();}).then(function(j){
     if(j.error){ out.innerHTML='<div class="muted" style="color:var(--danger)">Error: '+escapeHtml(j.error)+'</div>'; return; }
     var labs=(j.labs||[]).map(function(l){ return '<span class="chip '+(l.flag?'amber':'')+'">'+escapeHtml(l.name)+': '+escapeHtml(String(l.value))+' '+escapeHtml(l.unit||'')+'</span>'; }).join('');
@@ -845,11 +878,11 @@ function liveRecord(btn){
       var out=document.getElementById('voiceout'); out.innerHTML='<div class="transcript"><div class="muted">\u26A1 Sarvam transcribing + translating\u2026</div></div>';
       var blob=new Blob(_chunks,{type:'audio/webm'});
       fileToB64(blob).then(function(b64){
-        return fetch('/api/transcribe',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({audioBase64:b64,mimeType:'audio/webm'})});
+        return fetch('/api/transcribe',{method:'POST',headers:authHeaders(),body:JSON.stringify({audioBase64:b64,mimeType:'audio/webm'})});
       }).then(function(r){return r.json();}).then(function(j){
         if(j.error){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Sarvam error: '+escapeHtml(j.error)+'</div>'; return; }
         out.innerHTML='<div class="transcript"><div class="tline"><div class="who pat">Translated'+(j.language?' \u00B7 '+escapeHtml(j.language):'')+'</div><div class="eng">'+escapeHtml(j.english||'(no speech detected)')+'</div></div></div>';
-        return fetch('/api/analyze-conversation',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({transcript:j.english})}).then(function(r){return r.json();}).then(function(j2){
+        return fetch('/api/analyze-conversation',{method:'POST',headers:authHeaders(),body:JSON.stringify({transcript:j.english})}).then(function(r){return r.json();}).then(function(j2){
           if(j2 && j2.findings){ out.innerHTML+='<div style="margin-top:10px" class="ph">Findings \u00B7 Claude</div>'+(j2.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('')+(j2.mergeNote?'<div class="muted" style="margin-top:6px">'+escapeHtml(j2.mergeNote)+'</div>':''); }
         });
       }).catch(function(e){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Live voice failed: '+escapeHtml(String(e))+'</div>'; });
@@ -858,6 +891,59 @@ function liveRecord(btn){
     btn.textContent='\u25A0 Stop recording (live)'; btn.style.background='#c0392b';
   }).catch(function(e){ alert('Mic permission needed for live recording. Use the demo button instead.\n'+e); });
 }
+</script>
+<script>
+/* ================= AUTH (demo OTP) + role routing ================= */
+var SESSION=null, _lgphone='';
+function authHeaders(){ return {'content-type':'application/json', Authorization:'Bearer '+((SESSION&&SESSION.token)||'')}; }
+function _esc(s){ return (typeof escapeHtml==='function')?escapeHtml(s):String(s); }
+function lgErr(m){ var e=document.getElementById('lg-err'); if(e) e.textContent=m||''; }
+function doRequestOtp(){
+  _lgphone=(document.getElementById('lg-phone').value||'').trim(); lgErr('');
+  if(_lgphone.replace(/\D/g,'').length<10){ lgErr('Enter a valid 10-digit number'); return; }
+  fetch('/api/auth/request-otp',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:_lgphone})})
+    .then(function(r){return r.json();}).then(function(j){
+      if(j && j.error){ lgErr(j.error); return; }
+      document.getElementById('lg-step1').style.display='none';
+      document.getElementById('lg-step2').style.display='block';
+      var o=document.getElementById('lg-otp'); if(o) o.focus();
+    }).catch(function(){ lgErr('Network error \u2014 is the app deployed?'); });
+}
+function lgBack(){ document.getElementById('lg-step2').style.display='none'; document.getElementById('lg-step1').style.display='block'; lgErr(''); }
+function doVerifyOtp(){
+  var code=(document.getElementById('lg-otp').value||'').trim(); lgErr('');
+  fetch('/api/auth/verify-otp',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({phone:_lgphone,code:code})})
+    .then(function(r){return r.json();}).then(function(j){
+      if(j && j.error){ lgErr(j.error); return; }
+      SESSION={token:j.token, profile:j.profile};
+      try{ localStorage.setItem('setu_session', JSON.stringify(SESSION)); }catch(_){}
+      enterApp();
+    }).catch(function(){ lgErr('Network error'); });
+}
+function logout(){ SESSION=null; try{localStorage.removeItem('setu_session');}catch(_){}
+  document.body.classList.remove('authed'); document.body.classList.add('guest');
+  var s1=document.getElementById('lg-step1'), s2=document.getElementById('lg-step2');
+  if(s1) s1.style.display='block'; if(s2) s2.style.display='none';
+  var op=document.getElementById('lg-otp'); if(op) op.value='';
+}
+var ROLE_TABS={ admin:['onboarding','reception','doctor','hub'], receptionist:['reception'], gp:['doctor'], specialist:['hub'], counselor:['hub'] };
+var ROLE_LAND={ admin:'doctor', receptionist:'reception', gp:'doctor', specialist:'hub', counselor:'hub' };
+function enterApp(){
+  if(!SESSION||!SESSION.profile){ document.body.classList.add('guest'); return; }
+  document.body.classList.remove('guest'); document.body.classList.add('authed');
+  var role=SESSION.profile.role, allowed=ROLE_TABS[role]||['doctor'];
+  document.querySelectorAll('#nav button').forEach(function(b){ b.style.display = allowed.indexOf(b.dataset.m)>=0 ? '' : 'none'; });
+  var ub=document.getElementById('userbox');
+  if(ub) ub.innerHTML='<span class="userchip"><b>'+_esc(SESSION.profile.name)+'</b> \u00B7 <span class="rl">'+_esc(role)+'</span></span><button class="logoutbtn" onclick="logout()">Log out</button>';
+  var sim=document.querySelector('.sim'); if(sim) sim.style.display = role==='admin' ? '' : 'none';
+  if(role==='specialist') S.hubTab='approvals';
+  if(role==='counselor') S.hubTab='onboarding';
+  go(ROLE_LAND[role]||'doctor');
+}
+(function bootAuth(){
+  try{ var raw=localStorage.getItem('setu_session'); if(raw){ SESSION=JSON.parse(raw); } }catch(_){}
+  if(SESSION && SESSION.token){ enterApp(); } else { document.body.classList.add('guest'); }
+})();
 </script>
 </body>
 </html>
