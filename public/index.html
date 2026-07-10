@@ -410,7 +410,8 @@ function viewDoctor(){
       <span class="eyebrow">Doctor Console</span>
       <span class="pname">${p.name}</span>
       <span class="pmeta num">· ${p.id} · ${p.age}y · ${p.complaint}</span>
-      <span style="margin-left:auto" class="chip">📄 ${p.docs.length} raw records</span>
+      <button class="btn ghost" style="margin-left:auto;padding:8px 12px;font-size:12px" onclick="loadDoctorQueue()">Live queue (DB)</button>
+      <span class="chip">📄 ${p.docs.length} raw records</span>
       <span class="demo-tag">◇ Mock MedGemma engine</span>
     </div>
     <div class="console">
@@ -586,7 +587,7 @@ function finishVoice(){
       // pulse the intelligence cards to show integration
       const intel=document.getElementById('intelligence');
       if(intel){ intel.style.transition='box-shadow .4s'; intel.style.boxShadow='0 0 0 3px #5fd0c9'; setTimeout(()=>intel.style.boxShadow='none',1400); }
-      S.voiceRun=false;
+      S.voiceRun=false; window.LIVE_CONVO={findings:['Primary infertility \u00B7 3 yrs','Regular cycles \u2192 ovulatory','No TB / no pelvic surgery','2\u00D7 ovulation induction, failed'],source:'consultation (demo)'};
     },900);
   },700);
 }
@@ -837,12 +838,16 @@ function renderLiveDx(j){
 }
 function liveDiagnose(){
   var el=document.getElementById('intelligence'); if(!el) return;
-  el.innerHTML='<div class="card">\u26A1 Claude is analysing the case\u2026</div>';
-  fetch('/api/analyze-case',{method:'POST',headers:authHeaders(),body:JSON.stringify({patient:livePatientPayload()})})
+  var p=PATIENTS[S.patient];
+  var records={ labs:(p.labs||[]).map(function(l){return {name:l[0],value:l[1],unit:l[2],ref:l[3],flag:l[4]===1?1:0};}), hsg:p.hsg };
+  var hist={}; Object.entries(p.history).forEach(function(e){ hist[e[0]]=Array.isArray(e[1])?e[1][0]:e[1]; });
+  var payload={ records:records, history:hist, conversation:(window.LIVE_CONVO||null), patient:{age:p.age,partnerAge:p.partnerAge,bmi:p.bmi,complaint:p.complaint} };
+  el.innerHTML='<div class="card">\u26A1 Claude is fusing records + conversation + history\u2026</div>';
+  fetch('/api/analyze-case',{method:'POST',headers:authHeaders(),body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(j){
-      if(j.error){ var hint=/api[_ -]?key|not set|401|authentication|x-api-key/i.test(j.error)?'<div class="muted" style="margin-top:6px">Check ANTHROPIC_API_KEY in Vercel \u2192 Settings \u2192 Environment Variables, then redeploy.</div>':''; el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div>'+hint+'</div>'; return; }
-      el.innerHTML=renderLiveDx(j);
+      if(j.error){ el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div></div>'; return; }
+      el.innerHTML=renderLiveDx(j)+(j.fusionNote?'<div class="muted" style="margin-top:8px"><b>Fusion:</b> '+escapeHtml(j.fusionNote)+'</div>':'')+(window.LIVE_CONVO?'':'<div class="muted" style="margin-top:6px">Tip: run the consultation first to add conversation findings to the fusion.</div>');
     })
     .catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+'). Showing demo instead.</div>'+intelligence(PATIENTS[S.patient],false); });
 }
@@ -856,11 +861,12 @@ function liveExtract(input){
     return fetch('/api/extract-report',{method:'POST',headers:authHeaders(),body:JSON.stringify({imageBase64:b64,mediaType:file.type})});
   }).then(function(r){return r.json();}).then(function(j){
     if(j.error){ out.innerHTML='<div class="muted" style="color:var(--danger)">Error: '+escapeHtml(j.error)+'</div>'; return; }
+    window.LAST_EXTRACT={labs:j.labs||[],hsg:j.hsg||null};
     var labs=(j.labs||[]).map(function(l){ return '<span class="chip '+(l.flag?'amber':'')+'">'+escapeHtml(l.name)+': '+escapeHtml(String(l.value))+' '+escapeHtml(l.unit||'')+'</span>'; }).join('');
     out.innerHTML='<div class="ph" style="margin-top:6px">Claude extracted <span class="demo-tag" style="color:var(--green);background:var(--greenbg)">\u25CF live</span></div>'
       +(labs||'<span class="muted">No fertility values detected in this file.</span>')
       +(j.hsg?'<div style="margin-top:8px;font-size:13px"><b>HSG:</b> '+escapeHtml(j.hsg)+'</div>':'')
-      +'<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="routeToDoctor(\'p1\')">Route to doctor\u2019s queue \u2192</button></div>';
+      +'<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="saveCaseFromExtract()">Save + send to doctor\u2019s queue \u2192</button></div>';
   }).catch(function(e){ out.innerHTML='<div class="muted" style="color:var(--danger)">Live extract failed: '+escapeHtml(String(e))+'</div>'; });
 }
 
@@ -883,13 +889,48 @@ function liveRecord(btn){
         if(j.error){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Sarvam error: '+escapeHtml(j.error)+'</div>'; return; }
         out.innerHTML='<div class="transcript"><div class="tline"><div class="who pat">Translated'+(j.language?' \u00B7 '+escapeHtml(j.language):'')+'</div><div class="eng">'+escapeHtml(j.english||'(no speech detected)')+'</div></div></div>';
         return fetch('/api/analyze-conversation',{method:'POST',headers:authHeaders(),body:JSON.stringify({transcript:j.english})}).then(function(r){return r.json();}).then(function(j2){
-          if(j2 && j2.findings){ out.innerHTML+='<div style="margin-top:10px" class="ph">Findings \u00B7 Claude</div>'+(j2.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('')+(j2.mergeNote?'<div class="muted" style="margin-top:6px">'+escapeHtml(j2.mergeNote)+'</div>':''); }
+          if(j2 && j2.findings){ window.LIVE_CONVO={findings:j2.findings,mergeNote:j2.mergeNote,source:'live consultation'}; out.innerHTML+='<div style="margin-top:10px" class="ph">Findings \u00B7 Claude</div>'+(j2.findings||[]).map(function(fd){return '<span class="chip">'+escapeHtml(fd)+'</span>';}).join('')+(j2.mergeNote?'<div class="muted" style="margin-top:6px">'+escapeHtml(j2.mergeNote)+'</div>':''); }
         });
       }).catch(function(e){ out.innerHTML='<div class="transcript" style="color:#f0c66b">Live voice failed: '+escapeHtml(String(e))+'</div>'; });
     };
     _mediaRec.start();
     btn.textContent='\u25A0 Stop recording (live)'; btn.style.background='#c0392b';
   }).catch(function(e){ alert('Mic permission needed for live recording. Use the demo button instead.\n'+e); });
+}
+</script>
+<script>
+/* ============ Slice 2/3: persistence + live queues ============ */
+function apiGet(u){ return fetch(u,{headers:authHeaders()}).then(function(r){return r.json();}); }
+function apiSend(u,m,body){ return fetch(u,{method:m,headers:authHeaders(),body:JSON.stringify(body||{})}).then(function(r){return r.json();}); }
+function saveCaseFromExtract(){
+  var name=(document.getElementById('nn')&&document.getElementById('nn').value)||'New Patient';
+  var ex=window.LAST_EXTRACT||{labs:[],hsg:null};
+  apiSend('/api/cases','POST',{name:name,complaint:'Infertility workup',evidence:{records:{labs:ex.labs,hsg:ex.hsg}}}).then(function(j){
+    var out=document.getElementById('liveExtractOut'); if(!out) return;
+    if(j.error){ out.innerHTML+='<div class="muted" style="color:var(--danger);margin-top:8px">Save failed: '+escapeHtml(j.error)+'</div>'; return; }
+    out.innerHTML+='<div class="chip green" style="margin-top:8px">\u2713 Saved to doctor\u2019s queue (DB)</div>';
+  }).catch(function(e){ var out=document.getElementById('liveExtractOut'); if(out) out.innerHTML+='<div class="muted" style="color:var(--danger)">Save failed: '+escapeHtml(String(e))+'</div>'; });
+}
+function overlayOpen(html){
+  var o=document.getElementById('ovl');
+  if(!o){ o=document.createElement('div'); o.id='ovl'; o.className='modal-bg'; o.onclick=function(e){ if(e.target===o) overlayClose(); }; document.body.appendChild(o); }
+  o.innerHTML='<div class="modal">'+html+'</div>'; o.style.display='flex';
+}
+function overlayClose(){ var o=document.getElementById('ovl'); if(o) o.style.display='none'; }
+function loadDoctorQueue(){
+  overlayOpen('<div class="ph">Live doctor queue (database)</div><div class="muted">Loading\u2026</div>');
+  apiGet('/api/cases?queue=doctor').then(function(j){
+    if(j.error){ overlayOpen('<div class="ph">Live queue</div><div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); return; }
+    var rows=(j.cases||[]).map(function(c){ var nm=(c.patient&&c.patient.name)||'Patient'; var dx=(c.ai_verdict&&c.ai_verdict.diagnosis)||'\u2014 not analysed yet'; return '<div style="border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:center"><div style="flex:1"><b>'+escapeHtml(nm)+'</b><div class="muted">'+escapeHtml(dx)+'</div></div><button class="btn" style="padding:8px 12px;font-size:12px" onclick="runCaseAnalyze(\''+c.id+'\')">\u26A1 Fuse + analyse</button></div>'; }).join('');
+    overlayOpen('<div class="ph">Live doctor queue \u00B7 '+((j.cases||[]).length)+' cases (DB)</div>'+(rows||'<div class="muted">No cases yet \u2014 create one from Front Desk.</div>')+'<div id="ovlres" style="margin-top:10px"></div><div style="margin-top:12px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>');
+  }).catch(function(e){ overlayOpen('<div class="muted" style="color:var(--danger)">Queue failed: '+escapeHtml(String(e))+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); });
+}
+function runCaseAnalyze(id){
+  var r=document.getElementById('ovlres'); if(r) r.innerHTML='<div class="muted">\u26A1 Fusing records + conversation + history for this case\u2026</div>';
+  apiSend('/api/cases/'+id+'/analyze','POST',{}).then(function(j){
+    if(j.error){ if(r) r.innerHTML='<div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div>'; return; }
+    var v=j.verdict||{}; if(r) r.innerHTML='<div class="card"><b>'+escapeHtml(v.diagnosis||'')+'</b><div class="muted" style="margin-top:4px">Locus: '+escapeHtml(v.locus||'')+' \u00B7 '+escapeHtml(v.referral||'')+'</div>'+(v.fusionNote?'<div class="muted" style="margin-top:4px"><b>Fusion:</b> '+escapeHtml(v.fusionNote)+'</div>':'')+'<div class="chip green" style="margin-top:6px">\u2713 verdict saved to case</div></div>';
+  }).catch(function(e){ if(r) r.innerHTML='<div class="muted" style="color:var(--danger)">'+escapeHtml(String(e))+'</div>'; });
 }
 </script>
 <script>
