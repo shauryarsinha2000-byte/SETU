@@ -839,6 +839,14 @@ function renderLiveDx(j){
 function liveDiagnose(){
   var el=document.getElementById('intelligence'); if(!el) return;
   var p=PATIENTS[S.patient];
+  if(p && p._caseId){
+    el.innerHTML='<div class="card">\u26A1 Fusing this case (records + conversation + history + thresholds)\u2026</div>';
+    apiSend('/api/cases/'+p._caseId+'/analyze','POST',{}).then(function(j){
+      if(j.error){ el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div></div>'; return; }
+      var v=j.verdict||{}; el.innerHTML=renderLiveDx(v)+(v.fusionNote?'<div class="muted" style="margin-top:8px"><b>Fusion:</b> '+escapeHtml(v.fusionNote)+'</div>':'')+'<div class="chip green" style="margin-top:6px">\u2713 verdict saved to case</div>';
+    }).catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+').</div>'; });
+    return;
+  }
   var records={ labs:(p.labs||[]).map(function(l){return {name:l[0],value:l[1],unit:l[2],ref:l[3],flag:l[4]===1?1:0};}), hsg:p.hsg };
   var hist={}; Object.entries(p.history).forEach(function(e){ hist[e[0]]=Array.isArray(e[1])?e[1][0]:e[1]; });
   var payload={ records:records, history:hist, conversation:(window.LIVE_CONVO||null), patient:{age:p.age,partnerAge:p.partnerAge,bmi:p.bmi,complaint:p.complaint} };
@@ -921,9 +929,23 @@ function loadDoctorQueue(){
   overlayOpen('<div class="ph">Live doctor queue (database)</div><div class="muted">Loading\u2026</div>');
   apiGet('/api/cases?queue=doctor').then(function(j){
     if(j.error){ overlayOpen('<div class="ph">Live queue</div><div class="muted" style="color:var(--danger)">'+escapeHtml(j.error)+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); return; }
-    var rows=(j.cases||[]).map(function(c){ var nm=(c.patient&&c.patient.name)||'Patient'; var dx=(c.ai_verdict&&c.ai_verdict.diagnosis)||'\u2014 not analysed yet'; return '<div style="border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:center"><div style="flex:1"><b>'+escapeHtml(nm)+'</b><div class="muted">'+escapeHtml(dx)+'</div></div><button class="btn" style="padding:8px 12px;font-size:12px" onclick="runCaseAnalyze(\''+c.id+'\')">\u26A1 Fuse + analyse</button></div>'; }).join('');
+    window.DQ_CASES={}; (j.cases||[]).forEach(function(c){window.DQ_CASES[c.id]=c;});
+    var rows=(j.cases||[]).map(function(c){ var nm=(c.patient&&c.patient.name)||'Patient'; var dx=(c.ai_verdict&&c.ai_verdict.diagnosis)||'\u2014 not analysed yet'; return '<div style="border-bottom:1px solid var(--line);padding:10px 0;display:flex;gap:10px;align-items:center"><div style="flex:1"><b>'+escapeHtml(nm)+'</b><div class="muted">'+escapeHtml(dx)+'</div></div><button class="btn ghost" style="padding:8px 10px;font-size:12px" onclick="openCaseInConsole(\''+c.id+'\')">Open</button> <button class="btn" style="padding:8px 10px;font-size:12px" onclick="runCaseAnalyze(\''+c.id+'\')">\u26A1 Fuse</button></div>'; }).join('');
     overlayOpen('<div class="ph">Live doctor queue \u00B7 '+((j.cases||[]).length)+' cases (DB)</div>'+(rows||'<div class="muted">No cases yet \u2014 create one from Front Desk.</div>')+'<div id="ovlres" style="margin-top:10px"></div><div style="margin-top:12px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>');
   }).catch(function(e){ overlayOpen('<div class="muted" style="color:var(--danger)">Queue failed: '+escapeHtml(String(e))+'</div><div style="margin-top:10px"><button class="btn ghost" onclick="overlayClose()">Close</button></div>'); });
+}
+function openCaseInConsole(id){
+  var c=(window.DQ_CASES||{})[id]; if(!c) return;
+  var pt=c.patient||{}, ev=c.evidence||{}, rec=ev.records||{};
+  var labs=(rec.labs||[]).map(function(l){ return [l.name,l.value,l.unit,l.ref,(l.flag?1:0)]; });
+  PATIENTS.live={ id:(pt.id||c.id), name:pt.name||'Patient',
+    age:(pt.age==null?'\u2014':pt.age), partnerAge:(pt.partner_age==null?'\u2014':pt.partner_age),
+    bmi:pt.bmi||'\u2014', loc:pt.location||'\u2014', married:pt.married||'\u2014', complaint:pt.complaint||'',
+    history:(ev.history||{}), labs:labs, hsg:rec.hsg||'Not recorded', docs:[], _caseId:c.id };
+  window.LIVE_CONVO = ev.conversation || null;
+  S.patient='live'; overlayClose(); go('doctor');
+  var el=document.getElementById('intelligence');
+  if(el) el.innerHTML='<div class="card"><b>Live case loaded from the database.</b><div class="muted" style="margin-top:4px">Records and history are in'+(window.LIVE_CONVO?', plus conversation findings':'')+'. Tap the \u201C\u26A1 Run live AI diagnosis\u201D button above to fuse everything into a verdict (saved to this case).</div></div>';
 }
 function runCaseAnalyze(id){
   var r=document.getElementById('ovlres'); if(r) r.innerHTML='<div class="muted">\u26A1 Fusing records + conversation + history for this case\u2026</div>';
