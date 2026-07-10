@@ -808,7 +808,7 @@ function liveDiagnose(){
   fetch('/api/analyze-case',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({patient:livePatientPayload()})})
     .then(function(r){return r.json();})
     .then(function(j){
-      if(j.error){ el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div><div class="muted" style="margin-top:6px">Check ANTHROPIC_API_KEY in Vercel \u2192 Settings \u2192 Environment Variables, then redeploy.</div></div>'; return; }
+      if(j.error){ var hint=/api[_ -]?key|not set|401|authentication|x-api-key/i.test(j.error)?'<div class="muted" style="margin-top:6px">Check ANTHROPIC_API_KEY in Vercel \u2192 Settings \u2192 Environment Variables, then redeploy.</div>':''; el.innerHTML='<div class="card" style="border-left:4px solid var(--danger)"><b>Live AI error.</b><div class="muted">'+escapeHtml(j.error)+'</div>'+hint+'</div>'; return; }
       el.innerHTML=renderLiveDx(j);
     })
     .catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+'). Showing demo instead.</div>'+intelligence(PATIENTS[S.patient],false); });
