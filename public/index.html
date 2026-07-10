@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SETU — Hub-and-Spoke IVF Network (Prototype)</title>
 <style>
-
+ 
   :root{ --teal:#16807c; --deep:#0f5f5c; --ink:#1d2b31; --soft:#6a868d; --bg:#eef3f3; --card:#fff; --border:#e2eaea; --line:#eef2f2; --pale:#e7f1f0; --danger:#b23b2e; --amber:#9a6b14; --amberbg:#fbf2e0; --green:#2f8f5b; --greenbg:#e6f4ec; --nav-h:64px; }
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{overflow-x:hidden;}
@@ -148,8 +148,8 @@
     .tour-card{width:340px;left:auto;right:auto;}
     .stepn{flex:0 0 auto;min-width:0;}
   }
-
-
+ 
+ 
   /* ---- auth / login ---- */
   body:not(.authed) .topbar, body:not(.authed) .tabbar, body:not(.authed) #app, body:not(.authed) .sim{display:none!important;}
   #login{position:fixed;inset:0;z-index:400;background:linear-gradient(160deg,#0f3b3e,#0b2e30);display:none;align-items:center;justify-content:center;padding:20px;}
@@ -162,7 +162,7 @@
   #userbox{display:flex;align-items:center;gap:10px;}
   .userchip{font-size:12px;color:var(--soft);} .userchip b{color:var(--ink);} .userchip .rl{text-transform:capitalize;}
   .logoutbtn{background:#fff;border:1px solid var(--border);color:var(--soft);font-size:12px;padding:8px 11px;border-radius:9px;font-weight:600;}
-
+ 
 </style>
 </head>
 <body>
@@ -197,7 +197,7 @@
   <button data-m="hub"><span class="ti">🏨</span><span class="tl">Hub</span></button>
 </nav>
 <main id="app" class="wrap"></main>
-
+ 
 <!-- Simulation panel -->
 <div class="sim" id="sim">
   <h4 onclick="toggleSim()" style="cursor:pointer">● SETU Developer Simulation Engine ▾</h4>
@@ -212,7 +212,7 @@
       <button class="toggle" onclick="location.reload()">Reset</button></div>
   </div>
 </div>
-
+ 
 <script>
 /* ---------------- STATE + MOCK DATA ---------------- */
 const S = { module:'doctor', staff:'team', complete:true, patient:'p1', voiceRun:false, refsInjected:false,
@@ -227,7 +227,7 @@ const MISSING=[
   {key:'afc',name:'Antral Follicle Count — pelvic USG',why:'transvaginal scan',lab:'Nadiad Imaging · 1.2 km',result:['Antral Follicle Count','9','foll.','ref 8–24',0]},
   {key:'hsg',name:'HSG — tubal patency',why:'imaging',lab:'Nadiad Imaging · 1.2 km',hsg:'Bilateral tubal patency confirmed'},
 ];
-
+ 
 const PATIENTS = {
   p1:{ id:'PT-100481', name:'Meena R.', age:31, partnerAge:34, bmi:'23.0 · normal', loc:'Nadiad, GJ · Tier 3',
        married:'4 yrs', complaint:'Primary infertility, 3 yrs',
@@ -252,7 +252,7 @@ const PATIENTS = {
               ['Sperm Concentration','0','M/mL','AZOOSPERMIA',1],['Sperm Motility','0','%','—',1] ],
        hsg:'Bilateral tubal patency confirmed', docs:['amh.pdf','semen_analysis.pdf','hsg.jpg'] },
 };
-
+ 
 Object.assign(PATIENTS.p1,{docNote:'Regular cycles, no TB, 2 failed OI elsewhere. Borderline morphology — favour IUI at hub.',aiDx:'Mild male factor (borderline morphology 6%); ovulatory, patent tubes, normal reserve — favourable prognosis.',aiPlan:['IUI at hub (mild male factor + 2 failed OI)','Consider IVF-ICSI if IUI fails','Baseline USG + estradiol, Day 2'],convFindings:['Primary infertility · 3 yrs','Regular cycles → ovulatory','No TB / no pelvic surgery','2× ovulation induction, failed']});
 Object.assign(PATIENTS.p2,{docNote:'Irregular cycles, PCOS, high BMI. Ordered AMH / AFC / HSG via partner labs.',aiDx:'Anovulation (PCOS); normal reserve, patent tubes, adequate semen.',aiPlan:['Spoke: ovulation induction (letrozole)','Correct weight / thyroid first','Cap 3–6 cycles → escalate to hub'],convFindings:['Irregular cycles, 40–60d','PCOS suspected']});
 Object.assign(PATIENTS.p3,{docNote:'Azoospermia on semen analysis — mandatory hub review.',aiDx:'Severe male factor — azoospermia (no sperm in ejaculate).',aiPlan:['IVF + ICSI (mandatory hub route)','Surgical sperm retrieval / donor as needed'],convFindings:['Primary infertility · 5 yrs','No TB / no pelvic surgery']});
@@ -274,7 +274,7 @@ PATIENTS.p6={ id:'PT-100449', name:'Anjali T.', age:30, partnerAge:33, bmi:'24 �
   hsg:'Bilateral tubal patency confirmed', docs:['amh.pdf','semen_analysis.pdf','hsg.jpg'],
   docNote:'Mild-moderate male factor (low count + motility), 1 failed IUI. → IVF-ICSI.',
   aiDx:'Male factor (oligoasthenospermia); normal reserve, patent tubes.', aiPlan:['IVF-ICSI','Baseline USG + estradiol, Day 2'], convFindings:['3 yrs primary','1 failed IUI'] };
-
+ 
 const CLINICS = [
   ['Shreeji Clinic','Nadiad','Tier 3','Active',24],['Aastha Nursing Home','Anand','Tier 2','Active',18],
   ['Sparsh Clinic','Bharuch','Tier 3','Active',31],['Jeevan Clinic','Vyara','Tier 3','Onboarding',3],
@@ -288,7 +288,7 @@ let REFERRALS = [
   ['PT-100463','Rekha M.','Sanjeevani · Palanpur','12 Jun','Approved','Low AMH'],
   ['PT-100455','Nita P.','Matru · Godhra','11 Jun','Approved','—'],
 ];
-
+ 
 /* ---------------- ROUTER ---------------- */
 document.getElementById('nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.m) go(b.dataset.m); });
 function go(m){ S.module=m; document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); render(); }
@@ -299,7 +299,7 @@ function render(){
   else if(S.module==='doctor') a.innerHTML=viewDoctor();
   else if(S.module==='hub') a.innerHTML=viewHub();
 }
-
+ 
 /* ---------------- MODULE A · ONBOARDING ---------------- */
 let onbStep=1;
 function viewOnboarding(){
@@ -336,7 +336,7 @@ function onbBody(){
 }
 function onbNext(){ onbStep=Math.min(3,onbStep+1); rerenderOnb(); }
 function rerenderOnb(){ render(); }
-
+ 
 /* ---------------- MODULE B · RECEPTION ---------------- */
 let recState={mode:'search',found:null,uploaded:false};
 function viewReception(){
@@ -402,7 +402,7 @@ function runMedGemma(){
   },600);
 }
 function routeToDoctor(k){ S.patient=k; go('doctor'); }
-
+ 
 /* ---------------- MODULE C · DOCTOR CONSOLE ---------------- */
 function viewDoctor(){
   const p=PATIENTS[S.patient]; const inc=p.incomplete && !allLabsDone();
@@ -514,7 +514,7 @@ function intelligence(p,inc){
     <div class="ic tx"><div class="icn"><span class="n">3</span><h3>Recommended Treatment</h3><span class="chip">Provisional</span></div><ul>${tx.join('')}</ul></div>
   </div>`;
 }
-
+ 
 /* ---- VOICE CONSULTATION PIPELINE (mock) ---- */
 function voicePanel(){
   return `<div class="voice" id="voicepanel">
@@ -591,7 +591,7 @@ function finishVoice(){
     },900);
   },700);
 }
-
+ 
 /* ---------------- MODULE D · HUB COMMAND ---------------- */
 function viewHub(){
   return `<div class="eyebrow">Module D · Hub specialist + IVF hospital admin + SETU owner</div>
@@ -747,7 +747,7 @@ function hubGo(t){ S.hubTab=t; S.reviewCase=null; S.onbCase=null; render(); }
 function statusBadge(s){ if(s==='Approved')return '<span class="status appr">Approved</span>'; if(s.includes('Action'))return '<span class="status act">Action req.</span>'; return '<span class="status pend">Pending</span>'; }
 function openRef(name){ alert('Opening full case file for '+name+': structured diagnostics, MedGemma extraction, conversation findings, AI plan + raw reports. (demo)'); }
 function injectReferrals(){ S.refsInjected=true; if(S.module==='hub') render(); }
-
+ 
 /* ---------------- SIM PANEL ---------------- */
 function toggleSim(){ const b=document.getElementById('simbody'); b.classList.toggle('collapsed'); }
 function toggleStaff(){ S.staff=S.staff==='team'?'solo':'team'; const t=document.getElementById('tgStaff');
@@ -756,7 +756,7 @@ function toggleStaff(){ S.staff=S.staff==='team'?'solo':'team'; const t=document
 function toggleRecords(){ S.complete=!S.complete; const t=document.getElementById('tgRec');
   t.textContent=S.complete?'Complete':'Missing'; t.classList.toggle('on',S.complete);
   S.patient=S.complete?'p1':'p2'; if(S.module==='doctor') render(); }
-
+ 
 /* ---------------- GUIDED TOUR ---------------- */
 const TOUR=[
   {m:'doctor',sel:null,title:'Welcome to SETU',body:'This tour follows one couple through all five roles: patient → receptionist → GP → hub specialist → you (the SETU / hospital owner). Click Next.'},
@@ -809,7 +809,7 @@ function positionCard(target){
 function tourNext(){ if(tourIdx<TOUR.length-1){ tourIdx++; showTourStep(); } else endTour(); }
 function tourPrev(){ if(tourIdx>0){ tourIdx--; showTourStep(); } }
 function endTour(){ tourActive=false; if(lastSpot)lastSpot.classList.remove('spot'); if(tourOv)tourOv.remove(); if(tourCard)tourCard.remove(); }
-
+ 
 /* ---------------- INIT ---------------- */
 render();
 if(window.innerWidth<900){ var sb=document.getElementById('simbody'); if(sb) sb.classList.add('collapsed'); }
@@ -818,7 +818,7 @@ if(window.innerWidth<900){ var sb=document.getElementById('simbody'); if(sb) sb.
 /* ============ LIVE AI WIRING (calls the /api serverless routes) ============ */
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function fileToB64(file){ return new Promise(function(res,rej){ var r=new FileReader(); r.onload=function(){res(String(r.result).split(',')[1]);}; r.onerror=rej; r.readAsDataURL(file); }); }
-
+ 
 /* --- Doctor: real diagnosis via Claude (/api/analyze-case) --- */
 function livePatientPayload(){
   var p=PATIENTS[S.patient];
@@ -851,7 +851,7 @@ function liveDiagnose(){
     })
     .catch(function(e){ el.innerHTML='<div class="card">Live AI unavailable ('+escapeHtml(String(e))+'). Showing demo instead.</div>'+intelligence(PATIENTS[S.patient],false); });
 }
-
+ 
 /* --- Reception: real report reading via Claude vision (/api/extract-report) --- */
 function liveExtract(input){
   var file=input.files&&input.files[0]; if(!file) return;
@@ -869,7 +869,7 @@ function liveExtract(input){
       +'<div style="margin-top:12px"><button class="btn" style="width:100%" onclick="saveCaseFromExtract()">Save + send to doctor\u2019s queue \u2192</button></div>';
   }).catch(function(e){ out.innerHTML='<div class="muted" style="color:var(--danger)">Live extract failed: '+escapeHtml(String(e))+'</div>'; });
 }
-
+ 
 /* --- Doctor: real voice via Sarvam + Claude (/api/transcribe, /api/analyze-conversation) --- */
 var _mediaRec=null, _chunks=[];
 function liveRecord(btn){
