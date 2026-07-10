@@ -21,8 +21,8 @@ export default async function handler(req, res) {
       `Translated consultation transcript:\n"""${transcript}"""\n\n` +
       `Existing structured records (optional context): ${JSON.stringify(existing || {})}\n\n` +
       `Return ONLY the JSON object described.`;
-    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content: user }], max_tokens: 900 });
-    const json = extractJSON(text);
+    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content: user }, { role: "assistant", content: "{" }], max_tokens: 900 });
+    const json = extractJSON("{" + text);
     if (!json) return res.status(200).json({ error: "Could not parse model output", raw: text });
     return res.status(200).json(json);
   } catch (e) {

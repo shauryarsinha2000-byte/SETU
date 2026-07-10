@@ -31,8 +31,8 @@ export default async function handler(req, res) {
     const { patient } = req.body || {};
     if (!patient) return res.status(400).json({ error: "patient object required" });
     const user = `Patient case (JSON):\n${JSON.stringify(patient, null, 2)}\n\nReturn ONLY the JSON object described.`;
-    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content: user }], max_tokens: 1200 });
-    const json = extractJSON(text);
+    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content: user }, { role: "assistant", content: "{" }], max_tokens: 1200 });
+    const json = extractJSON("{" + text);
     if (!json) return res.status(200).json({ error: "Could not parse model output", raw: text });
     return res.status(200).json(json);
   } catch (e) {

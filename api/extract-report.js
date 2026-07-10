@@ -28,8 +28,8 @@ export default async function handler(req, res) {
       fileBlock,
       { type: "text", text: "Extract all fertility-relevant values from this report as normalised JSON, using the schema in the system prompt." },
     ];
-    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content }], max_tokens: 1200 });
-    const json = extractJSON(text);
+    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content }, { role: "assistant", content: "{" }], max_tokens: 1200 });
+    const json = extractJSON("{" + text);
     if (!json) return res.status(200).json({ error: "Could not parse model output", raw: text });
     return res.status(200).json(json);
   } catch (e) {
