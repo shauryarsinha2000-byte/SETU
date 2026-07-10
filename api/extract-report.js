@@ -10,7 +10,9 @@ Return ONLY JSON (no prose, no fences):
 }
 flag = 1 if the value is abnormal or borderline, else 0. Only include values actually present in the report.
 Look for: AMH, FSH, LH, estradiol, AFC, TSH, prolactin, semen concentration/motility/progressive motility/
-morphology/volume/vitality, and HSG/tubal patency.`;
+morphology/volume/vitality, and HSG/tubal patency.
+
+Output ONLY the raw JSON object. No explanation, no preamble, no markdown code fences. Your entire response must start with { and end with }.`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
@@ -28,8 +30,8 @@ export default async function handler(req, res) {
       fileBlock,
       { type: "text", text: "Extract all fertility-relevant values from this report as normalised JSON, using the schema in the system prompt." },
     ];
-    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content }, { role: "assistant", content: "{" }], max_tokens: 1200 });
-    const json = extractJSON("{" + text);
+    const text = await claude({ system: SYSTEM, messages: [{ role: "user", content }], max_tokens: 1200 });
+    const json = extractJSON(text);
     if (!json) return res.status(200).json({ error: "Could not parse model output", raw: text });
     return res.status(200).json(json);
   } catch (e) {
